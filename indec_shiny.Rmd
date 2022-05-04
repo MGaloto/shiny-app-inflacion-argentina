@@ -1,0 +1,706 @@
+---
+title: "Macro Trends Argentina"
+output:
+  flexdashboard::flex_dashboard:
+     theme : spacelab
+     orientation : rows 
+     self_contained : TRUE
+     navbar:
+       - { title: ".", href: "https://maxi-galo.shinyapps.io/macroargentina/", align: right}
+runtime: shiny
+---
+
+
+
+
+
+
+```{r setup, include=FALSE}
+
+
+Sys.setlocale("LC_TIME","Spanish") #para que los meses al abreviarlos no tengan un punto al final
+
+
+
+library(datasets)
+library(flexdashboard)
+library(plotly)
+library(crosstalk)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(tidymodels)
+library(shiny)
+library(dplyr)
+library(lubridate)
+library(readxl)
+library(highcharter)
+
+
+download.file("https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_04_22.xls","indec_nacional.xls", mode="wb")
+
+indec = read_excel('indec_nacional.xls')
+
+
+indec = indec[9:21,]
+
+n_col = ncol(indec) - 1
+
+
+periodos = seq(as.Date("2017/1/1"), by = "month", length.out = n_col)
+
+indec = data.frame(t(indec))
+
+colnames(indec) = c(indec[1,])
+
+row.names(indec) = 1:nrow(indec)
+
+
+indec = indec[-1,]
+
+indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2, trimws )
+
+
+
+
+indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2,     
+                            function(x) as.numeric(as.character(x))) 
+
+
+indec$periodos = periodos
+
+library(writexl)
+
+write_xlsx(indec, 'indecnacional.xlsx' )
+
+
+
+
+
+
+
+indec = read_excel('indecnacional.xlsx')
+
+
+
+indec$year = year(indec$periodos)
+
+indec$Mes = substr(indec$periodos, 6 , 7)
+
+indec$periodos = as.Date(indec$periodos)
+
+colnames(indec) = gsub(',', '',colnames(indec))
+
+
+colnames(indec) = gsub(' ', '_',colnames(indec))
+
+colnames(indec) = gsub('á', 'a',colnames(indec))
+colnames(indec) = gsub('é', 'e',colnames(indec))
+colnames(indec) = gsub('í', 'i',colnames(indec))
+colnames(indec) = gsub('ó', 'o',colnames(indec))
+colnames(indec) = gsub('ú', 'u',colnames(indec))
+
+
+#indec = indec[,c(3,8,46,47,48)]
+
+#nombres = colnames(indec[,c(1,2)])
+
+
+variable = indec$Nivel_general
+
+x = indec$Mes[1:12]
+
+years = c('2017','2018','2019','2020','2021')
+
+y_2017 = variable[indec$year == '2017']
+
+y_2018 = variable[indec$year == '2018']
+
+y_2019 = variable[indec$year == '2019']
+
+y_2020 = variable[indec$year == '2020']
+
+y_2021 = variable[indec$year == '2021']
+
+agregar_valores = length(y_2020) - length(y_2021)
+
+
+agregar_valores = length(variable[indec$year == '2020']  ) - length( variable[indec$year == '2021'] )
+
+
+
+indecgrafic <- highchart() %>%
+  hc_chart(type = "column")  %>%
+  hc_xAxis(categories = x,
+           title = 'Year',
+           title=list(text = "Mes")) %>%
+  hc_add_series(name = '2017',
+                data = indec$Nivel_general[indec$year == "2017"]) %>%
+  hc_add_series(name = '2018',
+                data = indec$Nivel_general[indec$year == "2018"]) %>%
+  hc_add_series(name = '2019',
+                data = indec$Nivel_general[indec$year == "2019"]) %>%
+  hc_add_series(name = '2020',
+                data = indec$Nivel_general[indec$year == "2020"]) %>% 
+  hc_yAxis(title=list(text = "Porcentaje "))%>% 
+  hc_tooltip(pointFormat =  "{series.name} <br>
+  {point.y} %", crosshairs = TRUE) %>%
+  hc_colors(c("#d19bac", "#b85f7b", "#d6225b", "#8a002c")) %>% 
+  hc_credits(enabled = TRUE, text = "Fuente: INDEC",align = "right",verticalAlign = "bottom",
+  style = list(color = "#2b908f", fontSize = '10px'),
+             href = " https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls")%>%
+  hc_add_theme(hc_theme_google())
+
+
+```
+
+```{r opc  hc, include=FALSE}
+```
+
+
+Serie histórica del Nivel General-IPC {data-navmenu="Inflación e Ingresos"}
+=========================================
+
+Column {.sidebar} {data-height=100}
+-------------------------------------
+
+```{r}
+
+
+
+selectInput("y", "Y-Axis", choices = sort(names(indec[,-c(14,15,16)])), selected = "Frutas")
+
+br()
+
+selectInput(inputId = 'grafico',
+            label = tags$strong('Graficos'),
+            choices = list('Grafico de Barras' = 1,'Series de Tiempo' = 2),
+            selected = 1)
+
+
+
+
+
+```
+
+
+Rows {data-height=150}
+-------------------------------------
+
+### Mensual
+
+```{r}
+
+#https://fontawesome.com/icons/chart-simple?s=solid
+#https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/
+
+renderValueBox({
+  valueBox(value = tags$p(paste0(deframe(indec[,c(input$y)])[nrow(indec)], ' %'), style = "font-size: 100%; color: #8a002c"), 
+           icon = "fa-diamond",
+           caption = tags$p(paste0('Inflacion Mensual de ',input$y), style = "font-size: 100%; color: #8a002c"),
+           color = '#f5d3dd')
+})
+
+
+
+```
+
+### Interanual
+
+
+```{r}
+
+
+
+```
+
+### Mes con menos Inflacion.
+
+```{r}
+
+
+
+```
+
+### Mes con mayor Inflacion.
+
+```{r}
+
+
+
+```
+
+
+Rows {data-height=850}
+---------------------------------------------------------------
+
+### Serie histórica del Nivel General, IPC Núcleo, Estacional y Regulados
+
+```{r gráfico1}
+
+renderHighchart({
+  if(input$grafico == 1 ) {
+    indecgrafic <- highchart() %>%
+    hc_chart(type = "column")  %>%
+    hc_xAxis(categories = x,
+             title = 'Year',
+             title=list(text = "Mes")) %>%
+    hc_add_series(name = '2017',
+                  data = deframe(indec[,c(input$y)])[indec$year == "2017"]) %>%
+    hc_add_series(name = '2018',
+                  data = deframe(indec[,c(input$y)])[indec$year == "2018"]) %>%
+    hc_add_series(name = '2019',
+                  data = deframe(indec[,c(input$y)])[indec$year == "2019"]) %>%
+    hc_add_series(name = '2020',
+                  data = deframe(indec[,c(input$y)])[indec$year == "2020"]) %>% 
+    hc_add_series(name = '2021',
+                  data = deframe(indec[,c(input$y)])[indec$year == "2021"]) %>% 
+    hc_add_series(name = '2022',
+                  data = deframe(indec[,c(input$y)])[indec$year == "2022"]) %>% 
+    hc_yAxis(title=list(text = "Porcentaje")) %>% 
+    hc_tooltip(pointFormat =  "{series.name} <br>
+    {point.y} %", crosshairs = TRUE) %>%
+    hc_colors(c("#d19bac", "#b85f7b", "#d6225b", "#8a002c", "#5c0520", "#2e010f")) %>% 
+    hc_credits(enabled = TRUE, text = "Fuente: INDEC",align = "right",verticalAlign = "bottom",
+    style = list(color = "#2b908f", fontSize = '10px'),
+               href = " https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls")%>%
+    hc_add_theme(hc_theme_google())
+    
+  }
+    
+  else{
+      
+       highchart() %>% 
+          hc_xAxis(categories = indec$periodos) %>% 
+          hc_chart(type = "column") %>% 
+          hc_add_series(name = "Periodo", data = deframe(indec[,c(input$y)])) %>% 
+          hc_add_theme(hc_theme_google()) %>% 
+          hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),
+                   style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
+          hc_subtitle(text = 'Desde 2017.',
+                      style = list(fontSize = '16px', color = "#0f0f0f")) %>% 
+          hc_credits(enabled = TRUE, text = '@MGaloto',
+                     style = list(fontSize = '16px', color = "#0f0f0f"))
+  
+}})
+
+
+```
+
+
+Tasa de Inflación mensual e Interanual por región   {data-navmenu="Inflación e Ingresos"}
+==================================================
+
+
+Row {.tabset .tabset-fade}
+-----------------------------
+
+### a
+
+
+```{r tabla1, include=FALSE, eval=FALSE}
+
+
+
+
+
+```
+
+```{r tabla1react,}
+
+
+
+
+
+```
+
+### a
+
+
+```{r tabla2, include=FALSE,eval=FALSE}
+
+
+
+
+
+```
+
+```{r tabla2react, }
+
+
+
+
+```
+
+```{css}
+
+
+
+
+```
+
+Tasa de Inflación mensual. Aperturas seleccionadas de la división Alimentos y bebidas no alcohólicas    {data-navmenu="Inflación e Ingresos"}
+====================================================================================================
+
+
+Column {.tabset .tabset-fade}
+----------------------------
+
+
+
+```{r grafAper, }
+#polarcolumn
+#
+#
+```
+
+### Pan y cereales
+
+```{r , }
+
+```
+
+### Carnes y derivados
+
+```{r , }
+
+```
+
+### Leche, productos lácteos y huevos
+
+```{r , }
+
+```
+
+### Aceites, grasas y manteca
+
+```{r , }
+
+```
+
+### Frutas
+
+```{r , }
+
+```
+
+### Verduras, tubérculos y legumbres
+```{r , }
+
+```
+
+### Azúcar, dulces, chocolates, etc.
+
+```{r , }
+
+```
+
+### Café, té, yerba y cacao
+
+```{r , }
+
+```
+
+### Aguas minerales, bebidas gaseosas y jugos
+
+```{r , }
+
+```
+  
+Distribución del ingreso y pobreza {data-navmenu="Inflación e Ingresos"}
+===================================== 
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+
+
+### Coef.Gini
+
+```{r graf2, fig.width=6, fig.asp = 0.618 }
+
+
+
+```
+
+
+
+
+```{r graf5}
+
+
+
+```
+
+### Tasa de incidencia de la pobreza e indigencia- 1er Semestre 2021- Aglomerados
+
+
+```{r preppob, include= FALSE  }
+
+
+
+```
+
+```{r tabla3}
+
+
+
+
+```
+
+### Pobreza e indigencia-1er semestre 2021-Regiones
+
+```{r tabla4}
+
+
+
+
+```
+
+
+PIB  {data-navmenu="Producto"}
+======================================================
+
+
+### Serie completa PIB, PIB desestacionalizado. Miles de millones de pesos a precios de 2004.   Tendencia obtenida mediante filtro HP.
+
+```{r graf3, include= FALSE  }
+
+
+
+```
+
+
+```{r graf4 }
+
+
+
+
+```
+
+
+
+EMAE {data-orientation=columns data-navmenu="Producto"}
+=========================================================
+
+
+Column {data-width = 700}
+-------------------------------------
+
+### Índice EMAE, base 2004 = 100
+
+```{r grafemae, }
+
+
+
+```
+  
+Column {tabset .tabset-fade}
+-----------------------------------------------
+
+
+### EMAE, descripción
+
+
+
+El EMAE es un indicador provisorio de la evolución del PIB a precios constantes de 2004.
+El indicador es un índice Laspeyres que ofrece una pauta del comportamiento de la actividad económica real con 
+una frecuencia mayor a la del PIB trimestral a precios constantes. Su cálculo consiste en sumar el 
+valor agregado a precios básicos de cada una de las actividades económicas más los impuestos netos de subsidios 
+a los productos, utilizando las ponderaciones de las cuentas nacionales base 2004 de la República Argentina. 
+[Leer la metodología aquí.](https://www.indec.gob.ar/ftp/cuadros/economia/metodologia_emae_ago_16.pdf)
+
+Puede consultarse la serie completa desde 2004 [aquí](https://www.indec.gob.ar/ftp/cuadros/economia/sh_emae_actividad_base2004.xls) . Fuente: INDEC.
+
+### Variación Desestacionalizada 
+
+
+```{r boxes1,}
+
+
+
+```
+
+### Variación Acumulada
+
+```{r boxes2,}
+
+
+
+```
+
+
+
+Valor agregado bruto a precios básicos {data-navmenu="Producto"}
+======================================================
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+
+### VAB Tercer trimestre 2021
+
+
+```{r , include= FALSE }
+
+
+
+```
+
+```{r graf15 }
+
+
+```
+
+### VAB, variación interanual
+
+```{r graf16 }
+
+
+
+```
+
+Balanza comercial, acumulado en 2022 {data-navmenu="Comercio Exterior"}
+=========================================================================
+
+
+### Balanza comercial, primer mes del 2022
+
+```{r , include= FALSE }
+
+
+```
+
+
+```{r graf6 }
+
+
+```
+
+Saldo y comercio exterior total, por zona zona económica - 2022 {data-navmenu="Comercio Exterior"}
+=================================================================================
+
+
+
+```{r cof12,include=FALSE }
+
+
+```							 
+							 
+```{r graf12,echo=FALSE }
+
+```
+
+Total comerciado, por país y continente - 2022 {data-navmenu="Comercio Exterior"}
+=================================================================================
+
+
+## Saldo balanza comercial e intercambio total, por continente y país. Acumulado 2022
+
+
+
+```{r cont, include=FALSE }
+
+
+
+```
+
+```{r tabla8 , include= FALSE,eval=FALSE}
+
+
+
+```
+
+
+
+
+```{r tabla9 }
+
+
+
+```
+
+Row {data-height=100}
+-------------------------------------
+
+- Fuente: [INDEC](https://comex.indec.gob.ar/) - Sistema de consulta de comercio exterior .
+- Datos Estimados.  Millones de dólares. 
+- Estados Unidos incluye Puerto Rico y territorios asociados, China a Macao. Chile, Uruguay y Brasil, sus zonas francas.
+- Última actualización: 24/2/2022.
+
+
+
+
+
+Resultado Fiscal, base caja  {data-navmenu="Resultado Fiscal"}
+=================================================================================
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+
+### Diciembre 2021
+
+```{r , include= FALSE }
+
+
+
+```
+
+
+```{r graf13 }
+
+
+
+```
+
+
+### Variaciones anuales
+
+```{r , include= FALSE }
+
+
+
+```
+
+
+```{r graf14 }
+
+
+
+```
+
+Origen provincial de las exportaciones y complejos exportadores - 2021 {data-orientation=columns data-navmenu="Comercio Exterior"}
+==================================================================================================================================
+
+Column {data-width = 500}
+-------------------------------------
+
+
+### Exportaciones por grandes rubros: PP, CyE, MOA y MOI.
+
+```{r origen , include= FALSE , warn= FALSE}
+
+
+
+```
+
+
+```{r mapa, echo=FALSE }
+
+
+
+```
+
+Column {data-width = 500}
+-------------------------------------
+
+### Complejos Exportadores
+
+```{r , include=FALSE  , warn=FALSE }
+
+
+
+							 
+```
+
+```{r complejosgraf, echo = FALSE}
+
+```
