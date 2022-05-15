@@ -1,0 +1,13 @@
+name: MacroTrends
+title: MacroTrends
+username:
+account: maxi-galo
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6234267
+bundleId: 5908957
+url: https://maxi-galo.shinyapps.io/MacroTrends/
+when: 1652657864.89439
+lastSyncTime: 1652657864.89439
+asMultiple: FALSE
+asStatic: FALSE
