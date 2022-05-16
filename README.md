@@ -59,11 +59,9 @@ Graficos Dinamicos y Estaticos.
 
 # Gif
 
-<div class="image-container">
-<p class="image-holder">
+<center>
 ![.](shinyarg.gif)
-</p>
-</div>
+</center>
 
 
 # Link
