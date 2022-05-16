@@ -61,8 +61,8 @@ Graficos Dinamicos y Estaticos.
 
 <p align="center">
   <img 
-    width="300"
-    height="300"
+    width="600"
+    height="600"
     src="shinyarg.gif"
   >
 </p>
