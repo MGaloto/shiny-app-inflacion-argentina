@@ -91,7 +91,7 @@ indec = read_excel('indecnacional.xlsx')
 
 indec$year = year(indec$periodos)
 
-indec$Mes = substr(indec$periodos, 6 , 7)
+indec$Mes = as.numeric(substr(indec$periodos, 6 , 7))
 
 indec$periodos = as.Date(indec$periodos)
 
@@ -118,6 +118,7 @@ variable = indec$Nivel_general
 x = indec$Mes[1:12]
 
 
+indec$month = month.abb[indec$Mes]
 
 
 ```
@@ -220,7 +221,7 @@ renderHighchart({
     
     indecgrafic <- highchart() %>%
     hc_chart(type = "column")  %>%
-    hc_xAxis(categories = x,
+    hc_xAxis(categories = indec$month,
              title = 'Year',
              title = list(text = "Mes")) %>%
     hc_add_series(name = '2017',

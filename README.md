@@ -57,6 +57,12 @@ Graficos Dinamicos y Estaticos.
 
 </ui>
 
+# Gif
+
+<p align="center">
+![.](shinyarg.gif)
+</p>
+
 
 # Link
 
