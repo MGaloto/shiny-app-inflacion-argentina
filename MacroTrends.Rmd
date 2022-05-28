@@ -244,6 +244,8 @@ indec_total$month = month.abb[indec_total$Mes]
 
 
 
+
+
 ```
 
 ```{r opc  hc, include=FALSE}
@@ -266,7 +268,7 @@ br()
 
 selectInput(inputId = 'grafico',
             label = tags$strong('Graficos'),
-            choices = list('Grafico de Barras' = 1,'barras' = 2),
+            choices = list('Grafico de Barras' = 1,'Interanual' = 2),
             selected = 1)
 
 
@@ -373,9 +375,9 @@ renderHighchart({
   else{
       
        highchart() %>% 
-          hc_xAxis(categories = indec$periodos) %>% 
-          hc_chart(type = "column") %>% 
-          hc_add_series(name = "Periodo", data = deframe(indec[,c(input$y)])) %>% 
+          hc_xAxis(categories = indec$periodos[12:nrow(indec)]) %>% 
+          hc_chart(type = "line") %>% 
+          hc_add_series(name = "Periodo", data = round(((((deframe(indec[,c(input$y)])/100)+1) *  ((lag(deframe(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(deframe(indec[,c(input$y)]), 3)/100)+1)*  ((lag(deframe(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)]) %>% 
           hc_add_theme(hc_theme_google()) %>% 
           hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),
                    style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
@@ -405,9 +407,9 @@ selectInput("y_dos", label = tags$strong("Seleccionar Rubros", align = "center")
 br()
 
 
-selectInput(inputId = 'grafico',
+selectInput(inputId = 'graficodos',
             label = tags$strong('Graficos'),
-            choices = list('Grafico de Barras' = 1,'barras' = 2),
+            choices = list('Grafico de Barras' = 1,'Interanual' = 2),
             selected = 1)
 
 
@@ -482,7 +484,7 @@ Rows {data-height=850}
 
 renderHighchart({
   
-  if(input$grafico == 1 ) {
+  if(input$graficodos == 1 ) {
     
     
     indec_totalgrafic <- highchart() %>%
@@ -516,9 +518,10 @@ renderHighchart({
   else{
       
        highchart() %>% 
-          hc_xAxis(categories = indec_total$periodos) %>% 
-          hc_chart(type = "column") %>% 
-          hc_add_series(name = "Periodo", data = deframe(indec_total[,c(input$y_dos)])) %>% 
+          hc_xAxis(categories = indec_total$periodos[12:nrow(indec_total)]) %>% 
+          hc_chart(type = "line") %>% 
+          hc_add_series(name = "Periodo", data = round(((((deframe(indec_total[,c(input$y_dos)])/100)+1) *  ((lag(deframe(indec_total[,c(input$y_dos)]), 1)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 2)/100)+1)		*  ((lag(deframe(indec_total[,c(input$y_dos)]), 3)/100)+1)*  ((lag(deframe(indec_total[,c(input$y_dos)]), 4)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 5)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 6)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 7)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 8)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 9)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 10)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec_total)]
+) %>% 
           hc_add_theme(hc_theme_google()) %>% 
           hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec_total[,c(input$y_dos)]))),
                    style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
@@ -816,10 +819,7 @@ Total comerciado, por país y continente - 2022 {data-navmenu="Comercio Exterior
 Row {data-height=100}
 -------------------------------------
 
-- Fuente: [INDEC](https://comex.indec.gob.ar/) - Sistema de consulta de comercio exterior .
-- Datos Estimados.  Millones de dólares. 
-- Estados Unidos incluye Puerto Rico y territorios asociados, China a Macao. Chile, Uruguay y Brasil, sus zonas francas.
-- Última actualización: 24/2/2022.
+- Fuente: [INDEC](https://comex.indec.gob.ar/) 
 
 
 
@@ -869,7 +869,7 @@ Column {data-width = 500}
 -------------------------------------
 
 
-### Exportaciones por grandes rubros: PP, CyE, MOA y MOI.
+### Ex
 
 ```{r origen , include= FALSE , warn= FALSE}
 
@@ -887,7 +887,7 @@ Column {data-width = 500}
 Column {data-width = 500}
 -------------------------------------
 
-### Complejos Exportadores
+### c
 
 ```{r , include=FALSE  , warn=FALSE }
 
@@ -899,3 +899,21 @@ Column {data-width = 500}
 ```{r complejosgraf, echo = FALSE}
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
