@@ -70,7 +70,10 @@ library(readxl)
 library(highcharter)
 
 
+
 substr(today(),3,4)
+
+
 
 
 file = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
@@ -241,11 +244,6 @@ indec_total$month = month.abb[indec_total$Mes]
 
 
 
-
-
-
-
-
 ```
 
 ```{r opc  hc, include=FALSE}
@@ -377,14 +375,18 @@ renderHighchart({
        highchart() %>% 
           hc_xAxis(categories = indec$periodos[12:nrow(indec)]) %>% 
           hc_chart(type = "line") %>% 
-          hc_add_series(name = "Periodo", data = round(((((deframe(indec[,c(input$y)])/100)+1) *  ((lag(deframe(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(deframe(indec[,c(input$y)]), 3)/100)+1)*  ((lag(deframe(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)]) %>% 
-          hc_add_theme(hc_theme_google()) %>% 
+          hc_add_series(name = "Periodo", data = round(((((deframe(indec[,c(input$y)])/100)+1) *  ((lag(deframe(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(deframe(indec[,c(input$y)]), 3)/100)+1)*  ((lag(deframe(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)],color = "black") %>% 
+          hc_add_theme(hc_theme_elementary())  %>% 
           hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),
                    style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
+          hc_tooltip(crosshairs = TRUE, backgroundColor = "#FCFFC5",
+                 shared = TRUE, borderWidth = 2) %>%
           hc_subtitle(text = 'Desde 2017.',
                       style = list(fontSize = '16px', color = "#0f0f0f")) %>% 
           hc_credits(enabled = TRUE, text = '@MGaloto',
                      style = list(fontSize = '16px', color = "#0f0f0f"))
+    
+    
   
 }})
 
@@ -521,134 +523,18 @@ renderHighchart({
           hc_xAxis(categories = indec_total$periodos[12:nrow(indec_total)]) %>% 
           hc_chart(type = "line") %>% 
           hc_add_series(name = "Periodo", data = round(((((deframe(indec_total[,c(input$y_dos)])/100)+1) *  ((lag(deframe(indec_total[,c(input$y_dos)]), 1)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 2)/100)+1)		*  ((lag(deframe(indec_total[,c(input$y_dos)]), 3)/100)+1)*  ((lag(deframe(indec_total[,c(input$y_dos)]), 4)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 5)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 6)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 7)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 8)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 9)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 10)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec_total)]
-) %>% 
-          hc_add_theme(hc_theme_google()) %>% 
+,color = "black") %>% 
+          hc_add_theme(hc_theme_elementary())  %>% 
           hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec_total[,c(input$y_dos)]))),
                    style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
+          hc_tooltip(crosshairs = TRUE, backgroundColor = "#FCFFC5",
+                 shared = TRUE, borderWidth = 2) %>%
           hc_subtitle(text = 'Desde 2017.',
                       style = list(fontSize = '16px', color = "#0f0f0f")) %>% 
           hc_credits(enabled = TRUE, text = '@MGaloto',
                      style = list(fontSize = '16px', color = "#0f0f0f"))
   
 }})
-
-
-
-```
-
-
-Tasa de Inflación mensual. Aperturas seleccionadas de la división Alimentos y bebidas no alcohólicas    {data-navmenu="Inflación"}
-====================================================================================================
-
-
-Column {.tabset .tabset-fade}
-----------------------------
-
-
-
-```{r grafAper, }
-#polarcolumn
-#
-#
-```
-
-### Pan y cereales
-
-```{r , }
-
-```
-
-### Carnes y derivados
-
-```{r , }
-
-```
-
-### Leche, productos lácteos y huevos
-
-```{r , }
-
-```
-
-### Aceites, grasas y manteca
-
-```{r , }
-
-```
-
-### Frutas
-
-```{r , }
-
-```
-
-### Verduras, tubérculos y legumbres
-```{r , }
-
-```
-
-### Azúcar, dulces, chocolates, etc.
-
-```{r , }
-
-```
-
-### Café, té, yerba y cacao
-
-```{r , }
-
-```
-
-### Aguas minerales, bebidas gaseosas y jugos
-
-```{r , }
-
-```
-  
-Distribución del ingreso y pobreza {data-navmenu="Inflación"}
-===================================== 
-
-Row {.tabset .tabset-fade}
--------------------------------------
-
-
-### Coef.Gini
-
-```{r graf2, fig.width=6, fig.asp = 0.618 }
-
-
-
-```
-
-
-
-
-```{r graf5}
-
-
-
-```
-
-### Tasa de incidencia de la pobreza e indigencia- 1er Semestre 2021- Aglomerados
-
-
-```{r preppob, include= FALSE  }
-
-
-
-```
-
-```{r tabla3}
-
-
-
-
-```
-
-### Pobreza e indigencia-1er semestre 2021-Regiones
-
-```{r tabla4}
-
 
 
 
