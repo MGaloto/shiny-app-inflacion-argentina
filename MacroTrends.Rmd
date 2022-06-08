@@ -16,7 +16,7 @@ runtime: shiny
     border: 1px solid #cccccc;
     padding: 6px 12px;
     display: inline-block;
-    width: 100%;
+    width: 83%;
     overflow: hidden;
     position: relative;
     z-index: 1;
@@ -24,6 +24,11 @@ runtime: shiny
     box-shadow: 1px 1px 1px #395c82;
     border: solid .5px #395c82;
     border-radius: .3rem;
+}
+
+.shiny-input-checkboxgroup.shiny-input-container-inline label~.shiny-options-group, .shiny-input-radiogroup.shiny-input-container-inline label~.shiny-options-group {
+    margin-top: 6px;
+    color: darkblue;
 }
 
 .navbar-inverse {
@@ -51,16 +56,16 @@ runtime: shiny
 ```{r setup, include=FALSE}
 
 
-Sys.setlocale("LC_TIME","Spanish") #para que los meses al abreviarlos no tengan un punto al final
+Sys.setlocale("LC_TIME","Spanish") 
 
 
 
 library(datasets)
 library(flexdashboard)
-library(plotly)
+#library(plotly)
 library(crosstalk)
 library(tidyverse)
-library(ggplot2)
+#library(ggplot2)
 library(dplyr)
 library(tidymodels)
 library(shiny)
@@ -71,60 +76,9 @@ library(highcharter)
 library(rlang)
 library(broom)
 
-# 
-# 
-# substr(today(),3,4)
-# 
-# 
-# 
-# 
-# file = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
-# 
-# destfile = "indec_nacional.xls"
-# 
-# download.file(file, destfile, mode = "wb")
-# 
-# indec = read_excel('indec_nacional.xls')
-# 
-# 
-# indec = indec[9:21,]
-# 
-# n_col = ncol(indec) - 1
-# 
-# 
-# periodos = seq(as.Date("2017/1/1"), by = "month", length.out = n_col)
-# 
-# 
-# 
-# indec = data.frame(t(indec))
-# 
-# colnames(indec) = c(indec[1,])
-# 
-# row.names(indec) = 1:nrow(indec)
-# 
-# indec = indec[-1,]
-# 
-# indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2, trimws )
-# 
-# 
-# 
-# 
-# indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2,
-#                             function(x) as.numeric(as.character(x)))
-# 
-# 
-# indec$periodos = periodos
-# 
-# library(writexl)
-# 
-# write_xlsx(indec, 'indecnacional.xlsx' )
-# 
-# 
+
 
 indec = read_excel('indecnacional.xlsx')
-
-
-
 
 
 indec$year = year(indec$periodos)
@@ -137,7 +91,6 @@ indec$periodos = as.Date(indec$periodos)
 
 
 colnames(indec) = gsub(',', '',colnames(indec))
-
 colnames(indec) = gsub('á', 'a',colnames(indec))
 colnames(indec) = gsub('é', 'e',colnames(indec))
 colnames(indec) = gsub('í', 'i',colnames(indec))
@@ -159,58 +112,8 @@ x = indec$Mes[1:12]
 indec$month = month.abb[indec$Mes]
 
 
-######################################################
-
-
-
-
-file_total = 'https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_aperturas.xls'
-
-destfile_total = "indec_nacional_total.xls"
-
-download.file(file_total, destfile_total, mode = "wb")
-
-indec_total = read_excel('indec_nacional_total.xls')
-
-
-indec_total = indec_total[8:52,]
-
-n_col_total = ncol(indec_total) - 1
-
-
-periodos_total = seq(as.Date("2017/1/1"), by = "month", length.out = n_col_total)
-
-
-
-indec_total = data.frame(t(indec_total))
-
-colnames(indec_total) = c(indec_total[1,])
-
-row.names(indec_total) = 1:nrow(indec_total)
-
-indec_total = indec_total[-1,]
-
-indec_total[ , c(1:(ncol(indec_total)))] = apply(indec_total[ , c(1:(ncol(indec_total)))], 2, trimws )
-
-
-
-
-indec_total[ , c(1:(ncol(indec_total)))] = apply(indec_total[ , c(1:(ncol(indec_total)))], 2,
-                            function(x) as.numeric(as.character(x)))
-
-
-indec_total$periodos = periodos_total
-
-library(writexl)
-
-write_xlsx(indec_total, 'indecnacional_total.xlsx' )
-
-
 
 indec_total = read_excel('indecnacional_total.xlsx')
-
-
-
 
 
 indec_total$year = year(indec_total$periodos)
@@ -218,8 +121,6 @@ indec_total$year = year(indec_total$periodos)
 indec_total$Mes = as.numeric(substr(indec_total$periodos, 6 , 7))
 
 indec_total$periodos = as.Date(indec_total$periodos)
-
-
 
 
 colnames(indec_total) = gsub(',', '',colnames(indec_total))
@@ -244,15 +145,13 @@ indec_total$month = month.abb[indec_total$Mes]
 
 
 
-
-
 ```
 
 ```{r opc  hc, include=FALSE}
 ```
 
 
-Según divisiones de la canasta, bienes y servicios, clasificación de grupos {data-navmenu="Inflación"}
+Según divisiones de la canasta, bienes y servicios, clasificación de grupos {data-navmenu="Precios"}
 =========================================
 
 Column {.sidebar} {data-height=100}
@@ -273,7 +172,6 @@ selectInput(inputId = 'grafico',
 
 
 
-
 ```
 
 
@@ -282,6 +180,14 @@ Rows {data-height=150}
 
 ### Mensual
 
+
+```{r}
+
+
+
+```
+
+
 ```{r}
 
 #https://fontawesome.com/icons/chart-simple?s=solid
@@ -289,6 +195,8 @@ Rows {data-height=150}
 #https://fontawesome.com/v4/cheatsheet/
 
 renderValueBox({
+  
+
   valueBox(value = tags$p(paste0(deframe(indec[,c(input$y)])[nrow(indec)], ' %'), style = "font-size: 100%; color: #8a002c"), 
            icon = "fa-diamond",
            caption = tags$p(paste0(substr(indec$periodos[nrow(indec)],1,7), ' Mensual.'), style = "font-size: 100%; color: #8a002c"),
@@ -396,7 +304,7 @@ renderHighchart({
 ```
 
 
-Según principales aperturas de la canasta   {data-navmenu="Inflación"}
+Según principales aperturas de la canasta   {data-navmenu="Precios"}
 ==================================================
 
 Column {.sidebar} {data-height=100}
@@ -543,7 +451,24 @@ renderHighchart({
 ```
 
 
-Regresion  {data-navmenu="Variables"}
+Pie Chart {data-navmenu="Precios"}
+=========================================
+
+Column {.sidebar} 
+-------------------------------------
+
+
+```{r}
+
+
+
+```
+
+
+
+
+
+Regresión  {data-navmenu="Variables"}
 ======================================================
 
 
@@ -567,10 +492,13 @@ selectInput(inputId = 'yvalue',
             choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17)]))), selected = "Educacion")
 
 
-selectInput(inputId = 'orden',
-            label = tags$strong('Orden'),
-            choices = c(1,2,3), selected = 1)
 
+radioButtons(
+  inputId = 'orden',
+  label = tags$strong('Orden'),
+  choices = c(1,2,3,4,5), selected = 1,
+  inline = TRUE,
+  width = '400px')
 
 
 ```
@@ -584,8 +512,6 @@ Rows {data-height=850}
 ### Scatter Macro
 
 ```{r}
-
-
 
 
 renderHighchart({
@@ -606,8 +532,17 @@ renderHighchart({
         lineWidth = 5,
         name = "%eq | r2: %r",
         hideInLegend = FALSE)) %>% 
-          hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js")
+        hc_colors(c("#9e030b", "#2980b9")) %>% 
+        hc_add_dependency("plugins/highcharts-regression.js") %>% 
+        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
+          style = list(color = "black", fontSize = '15px'),
+          href = "https://www.indec.gob.ar/") %>% 
+        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
+           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
+        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
+              style = list(fontSize = '16px', color = "black"))
+      
+      
   }else if (input$orden == 2 ) {
       hc <-   indec %>%
         hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
@@ -619,10 +554,17 @@ renderHighchart({
         name = "%eq | r2: %r",
         hideInLegend = FALSE)) %>% 
           hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js")
+          hc_add_dependency("plugins/highcharts-regression.js") %>% 
+        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
+          style = list(color = "black", fontSize = '15px'),
+          href = "https://www.indec.gob.ar/") %>% 
+        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
+           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
+        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
+              style = list(fontSize = '16px', color = "black"))
     
-  }else {
-    hc <-   indec %>%
+  }else if (input$orden == 3 ) {
+      hc <-   indec %>%
         hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
         type = "polynomial",
         dashStyle = "ShortDash",
@@ -632,7 +574,54 @@ renderHighchart({
         name = "%eq | r2: %r",
         hideInLegend = FALSE)) %>% 
           hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js")
+          hc_add_dependency("plugins/highcharts-regression.js") %>% 
+        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
+          style = list(color = "black", fontSize = '15px'),
+          href = "https://www.indec.gob.ar/") %>% 
+        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
+           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
+        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
+              style = list(fontSize = '16px', color = "black"))
+    
+  }else if (input$orden == 4 ) {
+      hc <-   indec %>%
+        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
+        type = "polynomial",
+        dashStyle = "ShortDash",
+        color = "skyblue",
+        order = 4,
+        lineWidth = 5,
+        name = "%eq | r2: %r",
+        hideInLegend = FALSE)) %>% 
+          hc_colors(c("#9e030b", "#2980b9")) %>% 
+          hc_add_dependency("plugins/highcharts-regression.js") %>% 
+        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
+          style = list(color = "black", fontSize = '15px'),
+          href = "https://www.indec.gob.ar/") %>% 
+        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
+           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
+        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
+              style = list(fontSize = '16px', color = "black"))
+    
+  }else {
+    hc <-   indec %>%
+        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
+        type = "polynomial",
+        dashStyle = "ShortDash",
+        color = "skyblue",
+        order = 5,
+        lineWidth = 5,
+        name = "%eq | r2: %r",
+        hideInLegend = FALSE)) %>% 
+          hc_colors(c("#9e030b", "#2980b9")) %>% 
+          hc_add_dependency("plugins/highcharts-regression.js") %>% 
+        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
+          style = list(color = "black", fontSize = '15px'),
+          href = "https://www.indec.gob.ar/") %>% 
+        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
+           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
+        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
+              style = list(fontSize = '16px', color = "black"))
     
   }
     

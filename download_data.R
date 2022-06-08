@@ -1,0 +1,163 @@
+
+
+library(datasets)
+library(flexdashboard)
+library(plotly)
+library(crosstalk)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(tidymodels)
+library(shiny)
+library(dplyr)
+library(lubridate)
+library(readxl)
+library(highcharter)
+library(rlang)
+library(broom)
+library(writexl)
+
+
+
+if (as.numeric(substr(today(),6,7)) > 15){
+  file = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
+  
+  destfile = "indec_nacional.xls"
+  
+  download.file(file, destfile, mode = "wb")
+  
+  
+  indec = read_excel('indec_nacional.xls')
+  
+  
+  indec = indec[9:21,]
+  
+  n_col = ncol(indec) - 1
+  
+  
+  periodos = seq(as.Date("2017/1/1"), by = "month", length.out = n_col)
+  
+  
+  indec = data.frame(t(indec))
+  
+  colnames(indec) = c(indec[1,])
+  
+  row.names(indec) = 1:nrow(indec)
+  
+  indec = indec[-1,]
+  
+  indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2, trimws )
+  
+  
+  indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2,
+                                       function(x) as.numeric(as.character(x)))
+  
+  indec$periodos = periodos
+  
+  indec$year = year(indec$periodos)
+  
+  indec$Mes = as.numeric(substr(indec$periodos, 6 , 7))
+  
+  indec$periodos = as.Date(indec$periodos)
+  
+  
+  
+  colnames(indec) = gsub(',', '',colnames(indec))
+  colnames(indec) = gsub('á', 'a',colnames(indec))
+  colnames(indec) = gsub('é', 'e',colnames(indec))
+  colnames(indec) = gsub('í', 'i',colnames(indec))
+  colnames(indec) = gsub('ó', 'o',colnames(indec))
+  colnames(indec) = gsub('ú', 'u',colnames(indec))
+  
+  
+  colnames(indec)[2] = 'Alimentos y bebidas'
+  colnames(indec)[5] = 'Vivienda Agua y Elec'
+  colnames(indec)[4] = 'Prendias y Calzado'
+  colnames(indec)[6] = 'Equip y Mant del Hogar'
+  
+  
+  indec$month = month.abb[indec$Mes]
+  
+  
+  write_xlsx(indec, 'indecnacional.xlsx' )
+  
+  
+  
+  ######################################################
+  
+
+  
+  file_total = 'https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_aperturas.xls'
+  
+  destfile_total = "indec_nacional_total.xls"
+  
+  download.file(file_total, destfile_total, mode = "wb")
+  
+  indec_total = read_excel('indec_nacional_total.xls')
+  
+  
+  indec_total = indec_total[8:52,]
+  
+  n_col_total = ncol(indec_total) - 1
+  
+  
+  periodos_total = seq(as.Date("2017/1/1"), by = "month", length.out = n_col_total)
+  
+  
+  
+  indec_total = data.frame(t(indec_total))
+  
+  colnames(indec_total) = c(indec_total[1,])
+  
+  row.names(indec_total) = 1:nrow(indec_total)
+  
+  indec_total = indec_total[-1,]
+  
+  indec_total[ , c(1:(ncol(indec_total)))] = apply(indec_total[ , c(1:(ncol(indec_total)))], 2, trimws )
+  
+  
+  
+  
+  indec_total[ , c(1:(ncol(indec_total)))] = apply(indec_total[ , c(1:(ncol(indec_total)))], 2,
+                                                   function(x) as.numeric(as.character(x)))
+  
+  
+  indec_total$periodos = periodos_total
+  
+  
+  indec_total$year = year(indec_total$periodos)
+  
+  indec_total$Mes = as.numeric(substr(indec_total$periodos, 6 , 7))
+  
+  indec_total$periodos = as.Date(indec_total$periodos)
+  
+  
+  colnames(indec_total) = gsub(',', '',colnames(indec_total))
+  
+  colnames(indec_total) = gsub('á', 'a',colnames(indec_total))
+  colnames(indec_total) = gsub('é', 'e',colnames(indec_total))
+  colnames(indec_total) = gsub('í', 'i',colnames(indec_total))
+  colnames(indec_total) = gsub('ó', 'o',colnames(indec_total))
+  colnames(indec_total) = gsub('ú', 'u',colnames(indec_total))
+  
+  
+  colnames(indec_total)[2] = 'Alimentos y bebidas'
+  
+  
+  indec_total$month = month.abb[indec_total$Mes]
+  
+  
+  write_xlsx(indec_total, 'indecnacional_total.xlsx' )
+  
+  
+  
+  
+  
+  
+} else {
+  
+  cat('Faltan: ', 15 - as.numeric(substr(today(),6,7)), ' dias')
+  
+}
+
+
