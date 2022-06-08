@@ -68,56 +68,58 @@ library(dplyr)
 library(lubridate)
 library(readxl)
 library(highcharter)
+library(rlang)
+library(broom)
 
-
-
-substr(today(),3,4)
-
-
-
-
-file = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
-
-destfile = "indec_nacional.xls"
-
-download.file(file, destfile, mode = "wb")
-
-indec = read_excel('indec_nacional.xls')
-
-
-indec = indec[9:21,]
-
-n_col = ncol(indec) - 1
-
-
-periodos = seq(as.Date("2017/1/1"), by = "month", length.out = n_col)
-
-
-
-indec = data.frame(t(indec))
-
-colnames(indec) = c(indec[1,])
-
-row.names(indec) = 1:nrow(indec)
-
-indec = indec[-1,]
-
-indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2, trimws )
-
-
-
-
-indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2,
-                            function(x) as.numeric(as.character(x)))
-
-
-indec$periodos = periodos
-
-library(writexl)
-
-write_xlsx(indec, 'indecnacional.xlsx' )
-
-
+# 
+# 
+# substr(today(),3,4)
+# 
+# 
+# 
+# 
+# file = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
+# 
+# destfile = "indec_nacional.xls"
+# 
+# download.file(file, destfile, mode = "wb")
+# 
+# indec = read_excel('indec_nacional.xls')
+# 
+# 
+# indec = indec[9:21,]
+# 
+# n_col = ncol(indec) - 1
+# 
+# 
+# periodos = seq(as.Date("2017/1/1"), by = "month", length.out = n_col)
+# 
+# 
+# 
+# indec = data.frame(t(indec))
+# 
+# colnames(indec) = c(indec[1,])
+# 
+# row.names(indec) = 1:nrow(indec)
+# 
+# indec = indec[-1,]
+# 
+# indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2, trimws )
+# 
+# 
+# 
+# 
+# indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2,
+#                             function(x) as.numeric(as.character(x)))
+# 
+# 
+# indec$periodos = periodos
+# 
+# library(writexl)
+# 
+# write_xlsx(indec, 'indecnacional.xlsx' )
+# 
+# 
 
 indec = read_excel('indecnacional.xlsx')
 
@@ -541,36 +543,114 @@ renderHighchart({
 ```
 
 
-PIB  {data-navmenu="Producto"}
+Regresion  {data-navmenu="Variables"}
 ======================================================
 
 
-### Serie completa PIB, PIB desestacionalizado. Miles de millones de pesos a precios de 2004.   Tendencia obtenida mediante filtro HP.
 
-```{r graf3, include= FALSE  }
+
+Column {.sidebar} {data-height=100}
+-------------------------------------
+
+```{r}
+
+br()
+
+
+selectInput(inputId = 'xvalue',
+            label = tags$strong('Variable X'),
+            choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17)]))), selected = "Frutas")
+
+
+selectInput(inputId = 'yvalue',
+            label = tags$strong('Variable Y'),
+            choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17)]))), selected = "Educacion")
+
+
+selectInput(inputId = 'orden',
+            label = tags$strong('Orden'),
+            choices = c(1,2,3), selected = 1)
 
 
 
 ```
 
 
-```{r graf4 }
 
 
+Rows {data-height=850}
+---------------------------------------------------------------
+
+### Scatter Macro
+
+```{r}
+
+
+
+
+renderHighchart({
+  
+  
+  xvar <- input$xvalue
+  yvar <- input$yvalue
+
+  
+  if(input$orden == 1 ) {
+
+      hc <-   indec %>%
+        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
+        type = "polynomial",
+        dashStyle = "ShortDash",
+        color = "skyblue",
+        order = 1,
+        lineWidth = 5,
+        name = "%eq | r2: %r",
+        hideInLegend = FALSE)) %>% 
+          hc_colors(c("#9e030b", "#2980b9")) %>% 
+          hc_add_dependency("plugins/highcharts-regression.js")
+  }else if (input$orden == 2 ) {
+      hc <-   indec %>%
+        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
+        type = "polynomial",
+        dashStyle = "ShortDash",
+        color = "skyblue",
+        order = 2,
+        lineWidth = 5,
+        name = "%eq | r2: %r",
+        hideInLegend = FALSE)) %>% 
+          hc_colors(c("#9e030b", "#2980b9")) %>% 
+          hc_add_dependency("plugins/highcharts-regression.js")
+    
+  }else {
+    hc <-   indec %>%
+        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
+        type = "polynomial",
+        dashStyle = "ShortDash",
+        color = "skyblue",
+        order = 3,
+        lineWidth = 5,
+        name = "%eq | r2: %r",
+        hideInLegend = FALSE)) %>% 
+          hc_colors(c("#9e030b", "#2980b9")) %>% 
+          hc_add_dependency("plugins/highcharts-regression.js")
+    
+  }
+    
+})
 
 
 ```
 
 
 
-EMAE {data-orientation=columns data-navmenu="Producto"}
+Ficha Técnica {data-orientation=columns data-navmenu="Variables"}
 =========================================================
 
 
 Column {data-width = 700}
 -------------------------------------
 
-### Índice EMAE, base 2004 = 100
+### Ficha Técnica
 
 ```{r grafemae, }
 
@@ -582,20 +662,13 @@ Column {tabset .tabset-fade}
 -----------------------------------------------
 
 
-### EMAE, descripción
+### Ficha Técnica
 
 
 
-El EMAE es un indicador provisorio de la evolución del PIB a precios constantes de 2004.
-El indicador es un índice Laspeyres que ofrece una pauta del comportamiento de la actividad económica real con 
-una frecuencia mayor a la del PIB trimestral a precios constantes. Su cálculo consiste en sumar el 
-valor agregado a precios básicos de cada una de las actividades económicas más los impuestos netos de subsidios 
-a los productos, utilizando las ponderaciones de las cuentas nacionales base 2004 de la República Argentina. 
-[Leer la metodología aquí.](https://www.indec.gob.ar/ftp/cuadros/economia/metodologia_emae_ago_16.pdf)
 
-Puede consultarse la serie completa desde 2004 [aquí](https://www.indec.gob.ar/ftp/cuadros/economia/sh_emae_actividad_base2004.xls) . Fuente: INDEC.
 
-### Variación Desestacionalizada 
+### Ficha Técnica
 
 
 ```{r boxes1,}
@@ -604,7 +677,7 @@ Puede consultarse la serie completa desde 2004 [aquí](https://www.indec.gob.ar/
 
 ```
 
-### Variación Acumulada
+### Ficha Técnica
 
 ```{r boxes2,}
 
@@ -614,13 +687,13 @@ Puede consultarse la serie completa desde 2004 [aquí](https://www.indec.gob.ar/
 
 
 
-Valor agregado bruto a precios básicos {data-navmenu="Producto"}
+Ficha Técnica 2 {data-navmenu="Variables"}
 ======================================================
 
 Row {.tabset .tabset-fade}
 -------------------------------------
 
-### VAB Tercer trimestre 2021
+### Ficha Técnica 2 
 
 
 ```{r , include= FALSE }
@@ -634,7 +707,7 @@ Row {.tabset .tabset-fade}
 
 ```
 
-### VAB, variación interanual
+### Ficha Técnica 3
 
 ```{r graf16 }
 
@@ -642,11 +715,11 @@ Row {.tabset .tabset-fade}
 
 ```
 
-Balanza comercial, acumulado en 2022 {data-navmenu="Comercio Exterior"}
+Balanza {data-navmenu="Comercio Exterior"}
 =========================================================================
 
 
-### Balanza comercial, primer mes del 2022
+### Balanza 1
 
 ```{r , include= FALSE }
 
@@ -659,7 +732,7 @@ Balanza comercial, acumulado en 2022 {data-navmenu="Comercio Exterior"}
 
 ```
 
-Saldo y comercio exterior total, por zona zona económica - 2022 {data-navmenu="Comercio Exterior"}
+Balanza 2 {data-navmenu="Comercio Exterior"}
 =================================================================================
 
 
@@ -673,11 +746,11 @@ Saldo y comercio exterior total, por zona zona económica - 2022 {data-navmenu="
 
 ```
 
-Total comerciado, por país y continente - 2022 {data-navmenu="Comercio Exterior"}
+Balanza 3 {data-navmenu="Comercio Exterior"}
 =================================================================================
 
 
-## Saldo balanza comercial e intercambio total, por continente y país. Acumulado 2022
+## Saldo
 
 
 
@@ -705,19 +778,19 @@ Total comerciado, por país y continente - 2022 {data-navmenu="Comercio Exterior
 Row {data-height=100}
 -------------------------------------
 
-- Fuente: [INDEC](https://comex.indec.gob.ar/) 
 
 
 
 
 
-Resultado Fiscal, base caja  {data-navmenu="Resultado Fiscal"}
+
+Resumen 1 {data-navmenu="Resumen"}
 =================================================================================
 
 Row {.tabset .tabset-fade}
 -------------------------------------
 
-### Diciembre 2021
+### Ficha
 
 ```{r , include= FALSE }
 
@@ -733,7 +806,7 @@ Row {.tabset .tabset-fade}
 ```
 
 
-### Variaciones anuales
+### Variaciones
 
 ```{r , include= FALSE }
 
@@ -747,46 +820,6 @@ Row {.tabset .tabset-fade}
 
 
 ```
-
-Origen provincial de las exportaciones y complejos exportadores - 2021 {data-orientation=columns data-navmenu="Comercio Exterior"}
-==================================================================================================================================
-
-Column {data-width = 500}
--------------------------------------
-
-
-### Ex
-
-```{r origen , include= FALSE , warn= FALSE}
-
-
-
-```
-
-
-```{r mapa, echo=FALSE }
-
-
-
-```
-
-Column {data-width = 500}
--------------------------------------
-
-### c
-
-```{r , include=FALSE  , warn=FALSE }
-
-
-
-							 
-```
-
-```{r complejosgraf, echo = FALSE}
-
-```
-
-
 
 
 
