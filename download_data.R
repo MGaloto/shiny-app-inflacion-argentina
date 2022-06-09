@@ -16,7 +16,7 @@ library(highcharter)
 library(rlang)
 library(broom)
 library(writexl)
-
+library(readr)
 
 
 if (as.numeric(substr(today(),6,7)) > 15){
@@ -161,3 +161,84 @@ if (as.numeric(substr(today(),6,7)) > 15){
 }
 
 
+
+colnames()
+
+
+
+library(DBI)
+library(RMySQL)
+
+txt = read_tsv('values.txt', col_names =  FALSE)
+
+
+mysqlconnection = dbConnect(RMySQL::MySQL(),
+                            dbname = 'centro_medicina_prepaga',
+                            host = txt$X1[1],
+                            port = as.numeric(txt$X1[2]),
+                            user = txt$X1[3],
+                            password = txt$X1[4])
+
+
+
+dbListTables(mysqlconnection)
+
+
+
+query = 'CREATE SCHEMA IF NOT EXISTS inflacion;'
+
+dbGetQuery(mysqlconnection, query)
+
+query = 'USE inflacion;'
+
+dbGetQuery(mysqlconnection, query)
+
+
+query = '
+          CREATE TABLE IF NOT EXISTS inflacion_argentina (
+          nivel_general INT,
+          alimentos_bebidas INT,
+          bebidas_alchol_tabaco INT,
+          prendas_calzado INT,
+          vivienda_agua_ele INT,
+          equip_mant_hogar INT,
+          salud INT,
+          transporte INT,
+          comunicacion INT,
+          recreacion_cultura INT,
+          educacion INT,
+          restaurante_hoteles INT,
+          bienes_servicios INT,
+          periodos DATE,
+          year INT,
+          mes  INT,
+          month VARCHAR(50)
+          );'
+
+
+dbGetQuery(mysqlconnection, query)
+
+
+
+dd <- data.frame(Quarter = c("16/17 Q1", "16/17 Q2"), Vendors = c("a","b"))
+
+
+query_values <- "insert into inflacion_argentina (nivel_general,alimentos_bebidas, bebidas_alchol_tabaco, prendas_calzado, vivienda_agua_ele, 
+equip_mant_hogar, salud, transporte, comunicacion, recreacion_cultura, educacion, restaurante_hoteles, bienes_servicios,
+periodos, year, mes, month) VALUES"
+
+
+
+
+query_insert <- paste0(query_values, paste(sprintf("('%s', '%s','%s', '%s','%s', '%s','%s', '%s','%s', '%s'
+                                         ,'%s', '%s','%s', '%s','%s', '%s','%s')", indec$`Nivel general`, indec$`Alimentos y bebidas`, 
+                                                   indec$`Bebidas alcoholicas y tabaco`, indec$`Prendias y Calzado`, 
+                                                   indec$`Vivienda Agua y Elec`,
+                                                   indec$`Equip y Mant del Hogar` , indec$Salud, indec$Transporte,
+                                                   indec$Comunicacion, indec$`Recreacion y cultura`, indec$Educacion,
+                                                   indec$`Restaurantes y hoteles`, indec$`Bienes y servicios varios`, 
+                                                   indec$periodos, indec$year, indec$Mes, indec$month ), collapse = ","))
+
+
+
+dbGetQuery(mysqlconnection, query_insert)
