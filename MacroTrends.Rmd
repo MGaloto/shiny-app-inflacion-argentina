@@ -59,13 +59,10 @@ runtime: shiny
 Sys.setlocale("LC_TIME","Spanish") 
 
 
-
 library(datasets)
 library(flexdashboard)
-#library(plotly)
 library(crosstalk)
 library(tidyverse)
-#library(ggplot2)
 library(dplyr)
 library(tidymodels)
 library(shiny)
@@ -75,80 +72,45 @@ library(readxl)
 library(highcharter)
 library(rlang)
 library(broom)
-
-
-
-indec = read_excel('indecnacional.xlsx')
-
-
-indec$year = year(indec$periodos)
-
-indec$Mes = as.numeric(substr(indec$periodos, 6 , 7))
-
-indec$periodos = as.Date(indec$periodos)
-
-
-
-
-colnames(indec) = gsub(',', '',colnames(indec))
-colnames(indec) = gsub('á', 'a',colnames(indec))
-colnames(indec) = gsub('é', 'e',colnames(indec))
-colnames(indec) = gsub('í', 'i',colnames(indec))
-colnames(indec) = gsub('ó', 'o',colnames(indec))
-colnames(indec) = gsub('ú', 'u',colnames(indec))
-
-
-colnames(indec)[2] = 'Alimentos y bebidas'
-colnames(indec)[5] = 'Vivienda Agua y Elec'
-colnames(indec)[4] = 'Prendias y Calzado'
-colnames(indec)[6] = 'Equip y Mant del Hogar'
-
-
-variable = indec$Nivel_general
-
-x = indec$Mes[1:12]
-
-
-indec$month = month.abb[indec$Mes]
+library(DBI)
+library(RMySQL)
 
 
 
 indec_total = read_excel('indecnacional_total.xlsx')
 
 
-indec_total$year = year(indec_total$periodos)
 
-indec_total$Mes = as.numeric(substr(indec_total$periodos, 6 , 7))
+txt = read.delim('values.txt', header = FALSE)
 
-indec_total$periodos = as.Date(indec_total$periodos)
-
-
-colnames(indec_total) = gsub(',', '',colnames(indec_total))
-
-colnames(indec_total) = gsub('á', 'a',colnames(indec_total))
-colnames(indec_total) = gsub('é', 'e',colnames(indec_total))
-colnames(indec_total) = gsub('í', 'i',colnames(indec_total))
-colnames(indec_total) = gsub('ó', 'o',colnames(indec_total))
-colnames(indec_total) = gsub('ú', 'u',colnames(indec_total))
+mysqlconnection = dbConnect(RMySQL::MySQL(),
+                            dbname = 'inflacion',
+                            host = txt$V1[1],
+                            port = as.numeric(txt$V1[2]),
+                            user = txt$V1[3],
+                            password = txt$V1[4])
 
 
-colnames(indec_total)[2] = 'Alimentos y bebidas'
+dbListTables(mysqlconnection)
 
+query = 'USE inflacion;'
 
+dbGetQuery(mysqlconnection, query)
 
-variable_total = indec_total$Nivel_general
+query = 'select * from inflacion_argentina'
 
-x = indec_total$Mes[1:12]
+indec = as_tibble(dbGetQuery(mysqlconnection, query))
 
+indec$periodos = as.Date(indec$periodos)
 
-indec_total$month = month.abb[indec_total$Mes]
-
+colnames(indec) = c("Nivel general" ,"Alimentos y bebidas" ,"Bebidas alcoholicas y tabaco", "Prendias y Calzado" ,         
+"Vivienda Agua y Elec", "Equip y Mant del Hogar" , "Salud"  , "Transporte" ,
+"Comunicacion" ,"Recreacion y cultura" , "Educacion" ,  "Restaurantes y hoteles" ,
+"Bienes y servicios varios"  ,  "periodos"    , "year"  ,   "Mes" ,"month"  )
 
 
 ```
 
-```{r opc  hc, include=FALSE}
-```
 
 
 Según divisiones de la canasta, bienes y servicios, clasificación de grupos {data-navmenu="Precios"}
@@ -160,7 +122,7 @@ Column {.sidebar} {data-height=100}
 ```{r}
 
 
-selectInput("y", label = tags$strong("Seleccionar Rubros", align = "center"), choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17)]))), selected = "Frutas")
+selectInput("y", label = tags$strong("Seleccionar Rubros", align = "center"), choices =  sort(names(indec[,-c(14,15,16,17)])), selected = "salud")
 
 br()
 
@@ -170,8 +132,6 @@ selectInput(inputId = 'grafico',
             choices = list('Grafico de Barras' = 1,'Interanual' = 2),
             selected = 1)
 
-
-
 ```
 
 
@@ -180,12 +140,6 @@ Rows {data-height=150}
 
 ### Mensual
 
-
-```{r}
-
-
-
-```
 
 
 ```{r}
@@ -202,9 +156,6 @@ renderValueBox({
            caption = tags$p(paste0(substr(indec$periodos[nrow(indec)],1,7), ' Mensual.'), style = "font-size: 100%; color: #8a002c"),
            color = '#f0dfe4')
 })
-
-
-
 
 ```
 
@@ -459,6 +410,7 @@ Column {.sidebar}
 
 
 ```{r}
+
 
 
 

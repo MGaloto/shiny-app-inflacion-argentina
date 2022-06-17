@@ -17,9 +17,13 @@ library(rlang)
 library(broom)
 library(writexl)
 library(readr)
+library(DBI)
+library(RMySQL)
 
 
-if (as.numeric(substr(today(),6,7)) > 15){
+
+
+if (as.numeric(substr(today(),9,10)) >= 15){
   file = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
   
   destfile = "indec_nacional.xls"
@@ -145,39 +149,26 @@ if (as.numeric(substr(today(),6,7)) > 15){
   
   
   indec_total$month = month.abb[indec_total$Mes]
-  
-  
   write_xlsx(indec_total, 'indecnacional_total.xlsx' )
   
-  
-  
-  
-  
-  
+
 } else {
-  
-  cat('Faltan: ', 15 - as.numeric(substr(today(),6,7)), ' dias')
+
+  cat('Faltan: ', 15 - as.numeric(substr(today(),9,10)), ' dias')
   
 }
 
 
 
-colnames()
 
-
-
-library(DBI)
-library(RMySQL)
-
-txt = read_tsv('values.txt', col_names =  FALSE)
-
+txt = read.delim('values.txt', header = FALSE)
 
 mysqlconnection = dbConnect(RMySQL::MySQL(),
-                            dbname = 'centro_medicina_prepaga',
-                            host = txt$X1[1],
-                            port = as.numeric(txt$X1[2]),
-                            user = txt$X1[3],
-                            password = txt$X1[4])
+                            dbname = 'inflacion',
+                            host = txt$V1[1],
+                            port = as.numeric(txt$V1[2]),
+                            user = txt$V1[3],
+                            password = txt$V1[4])
 
 
 
@@ -194,51 +185,91 @@ query = 'USE inflacion;'
 dbGetQuery(mysqlconnection, query)
 
 
-query = '
-          CREATE TABLE IF NOT EXISTS inflacion_argentina (
-          nivel_general INT,
-          alimentos_bebidas INT,
-          bebidas_alchol_tabaco INT,
-          prendas_calzado INT,
-          vivienda_agua_ele INT,
-          equip_mant_hogar INT,
-          salud INT,
-          transporte INT,
-          comunicacion INT,
-          recreacion_cultura INT,
-          educacion INT,
-          restaurante_hoteles INT,
-          bienes_servicios INT,
-          periodos DATE,
-          year INT,
-          mes  INT,
-          month VARCHAR(50)
-          );'
+query = 'select * from inflacion_argentina'
 
+indec_q = as_tibble(dbGetQuery(mysqlconnection, query))
 
-dbGetQuery(mysqlconnection, query)
+indec_q$periodos = as.Date(indec$periodos)
+
+colnames(indec_q) = c("Nivel general" ,"Alimentos y bebidas" ,"Bebidas alcoholicas y tabaco", "Prendias y Calzado" ,         
+                    "Vivienda Agua y Elec", "Equip y Mant del Hogar" , "Salud"  , "Transporte" ,
+                    "Comunicacion" ,"Recreacion y cultura" , "Educacion" ,  "Restaurantes y hoteles" ,
+                    "Bienes y servicios varios"  ,  "periodos"    , "year"  ,   "Mes" ,"month"  )
 
 
 
-dd <- data.frame(Quarter = c("16/17 Q1", "16/17 Q2"), Vendors = c("a","b"))
-
-
-query_values <- "insert into inflacion_argentina (nivel_general,alimentos_bebidas, bebidas_alchol_tabaco, prendas_calzado, vivienda_agua_ele, 
-equip_mant_hogar, salud, transporte, comunicacion, recreacion_cultura, educacion, restaurante_hoteles, bienes_servicios,
-periodos, year, mes, month) VALUES"
-
-
-
-
-query_insert <- paste0(query_values, paste(sprintf("('%s', '%s','%s', '%s','%s', '%s','%s', '%s','%s', '%s'
+if (indec_q$periodos[nrow(indec_q)] == indec$periodos[nrow(indec)]) {
+  
+  print('Mismo Mes')
+  
+} else {
+  
+  indec = indec[nrow(indec), ]
+  
+  query_values <- "insert into inflacion_argentina (nivel_general,
+                                                  alimentos_bebidas,
+                                                  bebidas_alchol_tabaco,
+                                                  prendas_calzado,
+                                                  vivienda_agua_ele,
+                                                  equip_mant_hogar,
+                                                  salud, transporte,
+                                                  comunicacion,
+                                                  recreacion_cultura,
+                                                  educacion,
+                                                  restaurante_hoteles,
+                                                  bienes_servicios, 
+                                                  periodos, 
+                                                  year, 
+                                                  mes, 
+                                                  month) VALUES"
+  
+  
+  
+  
+  query_insert <- paste0(query_values, paste(sprintf("('%s', '%s','%s', '%s','%s', '%s','%s', '%s','%s', '%s'
                                          ,'%s', '%s','%s', '%s','%s', '%s','%s')", indec$`Nivel general`, indec$`Alimentos y bebidas`, 
-                                                   indec$`Bebidas alcoholicas y tabaco`, indec$`Prendias y Calzado`, 
-                                                   indec$`Vivienda Agua y Elec`,
-                                                   indec$`Equip y Mant del Hogar` , indec$Salud, indec$Transporte,
-                                                   indec$Comunicacion, indec$`Recreacion y cultura`, indec$Educacion,
-                                                   indec$`Restaurantes y hoteles`, indec$`Bienes y servicios varios`, 
-                                                   indec$periodos, indec$year, indec$Mes, indec$month ), collapse = ","))
+                                                     indec$`Bebidas alcoholicas y tabaco`, indec$`Prendias y Calzado`, 
+                                                     indec$`Vivienda Agua y Elec`,
+                                                     indec$`Equip y Mant del Hogar` , indec$Salud, indec$Transporte,
+                                                     indec$Comunicacion, indec$`Recreacion y cultura`, indec$Educacion,
+                                                     indec$`Restaurantes y hoteles`, indec$`Bienes y servicios varios`, 
+                                                     indec$periodos, indec$year, indec$Mes, indec$month ), collapse = ","))
+  
+  
+  dbGetQuery(mysqlconnection, query_insert)
+  
+  
+}
 
 
 
-dbGetQuery(mysqlconnection, query_insert)
+
+# 
+# query = '
+#           CREATE TABLE IF NOT EXISTS inflacion_argentina (
+#           nivel_general FLOAT,
+#           alimentos_bebidas FLOAT,
+#           bebidas_alchol_tabaco FLOAT,
+#           prendas_calzado FLOAT,
+#           vivienda_agua_ele FLOAT,
+#           equip_mant_hogar FLOAT,
+#           salud FLOAT,
+#           transporte FLOAT,
+#           comunicacion FLOAT,
+#           recreacion_cultura FLOAT,
+#           educacion FLOAT,
+#           restaurante_hoteles FLOAT,
+#           bienes_servicios FLOAT,
+#           periodos DATE,
+#           year INT,
+#           mes  INT,
+#           month VARCHAR(50)
+#           );'
+# 
+# 
+# dbGetQuery(mysqlconnection, query)
+
+
+
+
+
