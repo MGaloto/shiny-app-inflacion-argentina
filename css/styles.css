@@ -1,0 +1,38 @@
+
+.selectize-input {
+  border: 1px solid #cccccc;
+  padding: 6px 12px;
+  display: inline-block;
+  width: 83%;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: 1px 1px 1px #395c82;
+  border: solid .5px #395c82;
+  border-radius: .3rem;
+}
+
+.shiny-input-checkboxgroup.shiny-input-container-inline label~.shiny-options-group, .shiny-input-radiogroup.shiny-input-container-inline label~.shiny-options-group {
+  margin-top: 6px;
+  color: darkblue;
+}
+
+.navbar-inverse {
+  background-image: -webkit-linear-gradient(#6d94bf, #446e9b 50%, #3e648d);
+    background-image: -o-linear-gradient(#6d94bf, #446e9b 50%, #3e648d);
+      background-image: -webkit-gradient(linear, left top, left bottom, from(#6d94bf), color-stop(50%, #446e9b), to(#3e648d));
+        background-image: linear-gradient(#6d94bf, #446e9b 50%, #3e648d);
+          background-repeat: no-repeat;
+          filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff6d94bf', endColorstr='#ff3e648d', GradientType=0);
+          filter: none;
+          border: 1px solid #345578;
+          text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
+          border: solid 3px #395c82;
+}
+
+.value-box > .inner {
+  padding: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
