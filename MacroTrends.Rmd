@@ -19,7 +19,6 @@ runtime: shiny
 Sys.setlocale("LC_TIME","Spanish") 
 
 
-
 library(datasets)
 library(flexdashboard)
 library(crosstalk)
@@ -33,43 +32,16 @@ library(readxl)
 library(highcharter)
 library(rlang)
 library(broom)
-library(DBI)
-library(RMySQL)
-
+library(viridis)
+library(RColorBrewer)
+library(shinyjs)
 
 
 indec_total = read_excel('indecnacional_total.xlsx')
 
+indec = read_excel('indecnacional.xlsx')
 
-
-txt = read.delim('values.txt', header = FALSE)
-
-mysqlconnection = dbConnect(RMySQL::MySQL(),
-                            dbname = 'inflacion',
-                            host = txt$V1[1],
-                            port = as.numeric(txt$V1[2]),
-                            user = txt$V1[3],
-                            password = txt$V1[4])
-
-
-dbListTables(mysqlconnection)
-
-query = 'USE inflacion;'
-
-dbGetQuery(mysqlconnection, query)
-
-query = 'select * from inflacion_argentina'
-
-indec = as_tibble(dbGetQuery(mysqlconnection, query))
-
-indec$periodos = as.Date(indec$periodos)
-
-colnames(indec) = c("Nivel general" ,"Alimentos y bebidas" ,"Bebidas alcoholicas y tabaco", "Prendias y Calzado" ,         
-"Vivienda Agua y Elec", "Equip y Mant del Hogar" , "Salud"  , "Transporte" ,
-"Comunicacion" ,"Recreacion y cultura" , "Educacion" ,  "Restaurantes y hoteles" ,
-"Bienes y servicios varios"  ,  "periodos"    , "year"  ,   "Mes" ,"month"  )
-
-
+indec$period_filter = substr(as.Date(indec$periodos), 1, 7)
 ```
 
 
@@ -93,6 +65,29 @@ selectInput(inputId = 'grafico',
             choices = list('Grafico de Barras' = 1,'Interanual' = 2),
             selected = 1)
 
+
+# radioButtons(
+#   inputId = 'añosone',
+#   label = tags$strong('Años'),
+#   choices = c(2017,2018,2019,2020,2021), selected = 2021,
+#   inline = TRUE,
+#   width = '400px')
+
+
+
+selectInput(
+    inputId =  "dateone", 
+    label = "Select time period:", 
+    choices = c(2017:2022)
+)
+
+selectInput(
+    inputId =  "datetwo", 
+    label = "Select time period:", 
+    choices = 2017:2022
+)
+
+
 ```
 
 
@@ -112,7 +107,7 @@ Rows {data-height=150}
 renderValueBox({
   
 
-  valueBox(value = tags$p(paste0(deframe(indec[,c(input$y)])[nrow(indec)], ' %'), style = "font-size: 100%; color: #8a002c"), 
+  valueBox(value = tags$p(paste0(pull(indec[,c(input$y)])[nrow(indec)], ' %'), style = "font-size: 100%; color: #8a002c"), 
            icon = "fa-diamond",
            caption = tags$p(paste0(substr(indec$periodos[nrow(indec)],1,7), ' Mensual.'), style = "font-size: 100%; color: #8a002c"),
            color = '#f0dfe4')
@@ -126,7 +121,7 @@ renderValueBox({
 ```{r}
 
 renderValueBox({
-  valueBox(value = tags$p(paste0(round(((((deframe(indec[,c(input$y)])/100)+1) *  ((lag(deframe(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(deframe(indec[,c(input$y)]), 3)/100)+1)*  ((lag(deframe(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[nrow(indec)], ' %'), style = "font-size: 100%; color: #8a002c"), 
+  valueBox(value = tags$p(paste0(round(((((pull(indec[,c(input$y)])/100)+1) *  ((lag(pull(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(pull(indec[,c(input$y)]), 3)/100)+1)*  ((lag(pull(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[nrow(indec)], ' %'), style = "font-size: 100%; color: #8a002c"), 
            icon = "fa-line-chart",
            caption = tags$p(paste0(paste0(substr(indec$periodos[nrow(indec) - 12],1,7), ' Hasta ', substr(indec$periodos[nrow(indec)],1,7)), '. Interanual.'), style = "font-size: 100%; color: #8a002c"),
            color = '#f5d3dd')
@@ -169,22 +164,14 @@ renderHighchart({
     hc_xAxis(categories = indec$month,
              title = 'Year',
              title = list(text = "Mes")) %>%
-    hc_add_series(name = '2017',
-                  data = deframe(indec[,c(input$y)])[indec$year == "2017"]) %>%
-    hc_add_series(name = '2018',
-                  data = deframe(indec[,c(input$y)])[indec$year == "2018"]) %>%
-    hc_add_series(name = '2019',
-                  data = deframe(indec[,c(input$y)])[indec$year == "2019"]) %>%
-    hc_add_series(name = '2020',
-                  data = deframe(indec[,c(input$y)])[indec$year == "2020"]) %>% 
-    hc_add_series(name = '2021',
-                  data = deframe(indec[,c(input$y)])[indec$year == "2021"]) %>% 
-    hc_add_series(name = '2022',
-                  data = deframe(indec[,c(input$y)])[indec$year == "2022"]) %>% 
+    hc_add_series(name = input$dateone,
+                  data = pull(indec[,c(input$y)])[indec$year == input$dateone]) %>%
+    hc_add_series(name = input$datetwo,
+                  data = pull(indec[,c(input$y)])[indec$year == input$datetwo]) %>%
     hc_yAxis(title = list(text = "Porcentaje")) %>% 
     hc_tooltip(pointFormat =  "{series.name} <br>
     {point.y} %", crosshairs = TRUE) %>%
-    hc_colors(c("#d19bac", "#b85f7b", "#d6225b", "#8a002c", "#5c0520", "#2e010f")) %>% 
+    hc_colors(c("#d19bac","#5c0520")) %>% 
     hc_credits(enabled = TRUE, text = "Fuente: INDEC",align = "right",verticalAlign = "bottom",
     style = list(color = "#2b908f", fontSize = '10px'),
                href = " https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls") %>%
@@ -195,22 +182,28 @@ renderHighchart({
   else{
       
        highchart() %>% 
-          hc_xAxis(categories = indec$periodos[12:nrow(indec)]) %>% 
+          hc_xAxis(categories = as.Date(indec$periodos[12:nrow(indec)]), 
+      dateTimeLabelFormats = list(week = "%b-%y")) %>% 
           hc_chart(type = "line") %>% 
-          hc_add_series(name = "Periodo", data = round(((((deframe(indec[,c(input$y)])/100)+1) *  ((lag(deframe(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(deframe(indec[,c(input$y)]), 3)/100)+1)*  ((lag(deframe(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(deframe(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(deframe(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)],color = "black") %>% 
+          hc_add_series(name = "Periodo", data = round(((((pull(indec[,c(input$y)])/100)+1) *  ((lag(pull(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(pull(indec[,c(input$y)]), 3)/100)+1)*  ((lag(pull(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)],color = "black") %>% 
           hc_add_theme(hc_theme_elementary())  %>% 
+          hc_navigator(																									
+                    enabled = TRUE																									
+                  ) %>%		
           hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),
                    style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
           hc_tooltip(crosshairs = TRUE, backgroundColor = "#FCFFC5",
                  shared = TRUE, borderWidth = 2) %>%
           hc_subtitle(text = 'Desde 2017.',
-                      style = list(fontSize = '16px', color = "#0f0f0f")) %>% 
+                      style = list(fontSize = '16px', color = "#b83939")) %>% 
           hc_credits(enabled = TRUE, text = '@MGaloto',
-                     style = list(fontSize = '16px', color = "#0f0f0f"))
-    
+                     style = list(fontSize = '16px', color = "#b83939"))
     
   
 }})
+
+
+
 
 
 ```
@@ -254,7 +247,7 @@ Rows {data-height=150}
 #https://fontawesome.com/v4/cheatsheet/
 
 renderValueBox({
-  valueBox(value = tags$p(paste0(deframe(indec_total[,c(input$y_dos)])[nrow(indec_total)], ' %'), style = "font-size: 100%; color: #8a002c"), 
+  valueBox(value = tags$p(paste0(pull(indec_total[,c(input$y_dos)])[nrow(indec_total)], ' %'), style = "font-size: 100%; color: #8a002c"), 
            icon = "fa-diamond",
            caption = tags$p(paste0(substr(indec_total$periodos[nrow(indec_total)],1,7), ' Mensual.'), style = "font-size: 100%; color: #8a002c"),
            color = '#f0dfe4')
@@ -271,7 +264,7 @@ renderValueBox({
 ```{r}
 																									
 renderValueBox({																									
-  valueBox(value = tags$p(paste0(round(((((deframe(indec_total[,c(input$y_dos)])/100)+1) *  ((lag(deframe(indec_total[,c(input$y_dos)]), 1)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 2)/100)+1)		*  ((lag(deframe(indec_total[,c(input$y_dos)]), 3)/100)+1)*  ((lag(deframe(indec_total[,c(input$y_dos)]), 4)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 5)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 6)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 7)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 8)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 9)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 10)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 11)/100)+1) - 1 ) * 100),1)[nrow(indec_total)], ' %'), style = "font-size: 100%; color: #8a002c"), 
+  valueBox(value = tags$p(paste0(round(((((pull(indec_total[,c(input$y_dos)])/100)+1) *  ((lag(pull(indec_total[,c(input$y_dos)]), 1)/100)+1)	*  ((lag(pull(indec_total[,c(input$y_dos)]), 2)/100)+1)		*  ((lag(pull(indec_total[,c(input$y_dos)]), 3)/100)+1)*  ((lag(pull(indec_total[,c(input$y_dos)]), 4)/100)+1)				*  ((lag(pull(indec_total[,c(input$y_dos)]), 5)/100)+1)				*  ((lag(pull(indec_total[,c(input$y_dos)]), 6)/100)+1)	*  ((lag(pull(indec_total[,c(input$y_dos)]), 7)/100)+1)				*  ((lag(pull(indec_total[,c(input$y_dos)]), 8)/100)+1)				*  ((lag(pull(indec_total[,c(input$y_dos)]), 9)/100)+1)	*  ((lag(pull(indec_total[,c(input$y_dos)]), 10)/100)+1)				*  ((lag(pull(indec_total[,c(input$y_dos)]), 11)/100)+1) - 1 ) * 100),1)[nrow(indec_total)], ' %'), style = "font-size: 100%; color: #8a002c"), 
            icon = "fa-line-chart",																									
            caption = tags$p(paste0(paste0(substr(indec_total$periodos[nrow(indec_total) - 12],1,7), ' Hasta ', substr(indec_total$periodos[nrow(indec_total)],1,7)), '. Interanual.'), style = "font-size: 100%; color: #8a002c"),																									
            color = '#f5d3dd')																									
@@ -317,17 +310,17 @@ renderHighchart({
              title = 'Year',
              title = list(text = "Mes")) %>%
     hc_add_series(name = '2017',
-                  data = deframe(indec_total[,c(input$y_dos)])[indec_total$year == "2017"]) %>%
+                  data = pull(indec_total[,c(input$y_dos)])[indec_total$year == "2017"]) %>%
     hc_add_series(name = '2018',
-                  data = deframe(indec_total[,c(input$y_dos)])[indec_total$year == "2018"]) %>%
+                  data = pull(indec_total[,c(input$y_dos)])[indec_total$year == "2018"]) %>%
     hc_add_series(name = '2019',
-                  data = deframe(indec_total[,c(input$y_dos)])[indec_total$year == "2019"]) %>%
+                  data = pull(indec_total[,c(input$y_dos)])[indec_total$year == "2019"]) %>%
     hc_add_series(name = '2020',
-                  data = deframe(indec_total[,c(input$y_dos)])[indec_total$year == "2020"]) %>% 
+                  data = pull(indec_total[,c(input$y_dos)])[indec_total$year == "2020"]) %>% 
     hc_add_series(name = '2021',
-                  data = deframe(indec_total[,c(input$y_dos)])[indec_total$year == "2021"]) %>% 
+                  data = pull(indec_total[,c(input$y_dos)])[indec_total$year == "2021"]) %>% 
     hc_add_series(name = '2022',
-                  data = deframe(indec_total[,c(input$y_dos)])[indec_total$year == "2022"]) %>% 
+                  data = pull(indec_total[,c(input$y_dos)])[indec_total$year == "2022"]) %>% 
     hc_yAxis(title = list(text = "Porcentaje")) %>% 
     hc_tooltip(pointFormat =  "{series.name} <br>
     {point.y} %", crosshairs = TRUE) %>%
@@ -341,20 +334,28 @@ renderHighchart({
     
   else{
       
-       highchart() %>% 
-          hc_xAxis(categories = indec_total$periodos[12:nrow(indec_total)]) %>% 
-          hc_chart(type = "line") %>% 
-          hc_add_series(name = "Periodo", data = round(((((deframe(indec_total[,c(input$y_dos)])/100)+1) *  ((lag(deframe(indec_total[,c(input$y_dos)]), 1)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 2)/100)+1)		*  ((lag(deframe(indec_total[,c(input$y_dos)]), 3)/100)+1)*  ((lag(deframe(indec_total[,c(input$y_dos)]), 4)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 5)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 6)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 7)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 8)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 9)/100)+1)	*  ((lag(deframe(indec_total[,c(input$y_dos)]), 10)/100)+1)				*  ((lag(deframe(indec_total[,c(input$y_dos)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec_total)]
-,color = "black") %>% 
-          hc_add_theme(hc_theme_elementary())  %>% 
-          hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec_total[,c(input$y_dos)]))),
-                   style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
-          hc_tooltip(crosshairs = TRUE, backgroundColor = "#FCFFC5",
-                 shared = TRUE, borderWidth = 2) %>%
-          hc_subtitle(text = 'Desde 2017.',
-                      style = list(fontSize = '16px', color = "#0f0f0f")) %>% 
-          hc_credits(enabled = TRUE, text = '@MGaloto',
-                     style = list(fontSize = '16px', color = "#0f0f0f"))
+       highchart() %>% 																									
+          hc_xAxis(categories = as.Date(indec$periodos[12:nrow(indec)]), dateTimeLabelFormats = list(																									
+      week = "%b-%y")) %>% 																									
+          hc_chart(type = "line") %>% 																									
+          hc_add_series(name = "Periodo", data = round(((((pull(indec[,c(input$y)])/100)+1) *  ((lag(pull(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(pull(indec[,c(input$y)]), 3)/100)+1)*  ((lag(pull(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)],color = "#b83939") %>% 
+          hc_add_theme(hc_theme_elementary()) %>%																									
+          hc_navigator(																									
+            enabled = TRUE																									
+          ) %>%																									
+        																									
+          hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),																									
+                   style = list(fontSize = '25px', fontWeight = 'bold')) %>% 																									
+          hc_tooltip(crosshairs = TRUE, backgroundColor = "#FCFFC5",																									
+                 shared = TRUE, borderWidth = 2) %>%																									
+          hc_subtitle(text = 'Desde 2017.',																									
+                      style = list(fontSize = '16px', color = "#b83939")) %>% 																									
+          hc_credits(enabled = TRUE, text = '@MGaloto',																									
+                     style = list(fontSize = '16px', color = "#b83939"))			
+    
+    
+    
+
   
 }})
 
@@ -363,14 +364,64 @@ renderHighchart({
 ```
 
 
-Pie Chart {data-navmenu="Precios"}
+Tree Map {data-navmenu="Precios"}
 =========================================
 
-Column {.sidebar} 
+
+
+Column {.sidebar} {data-height=100}
 -------------------------------------
+
+```{r}
+
+indec$period_filter = substr(as.Date(indec$periodos), 1, 7)
+
+selectInput(inputId = 'datevalue',
+            label = tags$strong('Fecha'),
+            choices = indec$period_filter, 
+            selected = indec$period_filter[nrow(indec)])
+
+selectInput(inputId = 'colors',
+            label = tags$strong('Colores'),
+            choices = c('Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd', 'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 'Reds', 'YlGn', 'YlGnBu' ,'YlOrBr', 'YlOrRd'), 
+            selected = 'PuRd')
+
+
+```
+
+
+Rows {data-height=850}
+---------------------------------------------------------------
+
 
 
 ```{r}
+
+
+
+renderHighchart({
+  
+  
+  data = indec %>%  filter(indec$period_filter == input$datevalue)
+  
+  tibbl = data %>% tibble(x = colnames(data)[1:13], y = as.numeric(data[nrow(data),1:13]))
+  
+  tibbl %>% 
+    hchart("treemap", hcaes(name = x, value = y, color = y)) %>%
+    hc_title(text = "Inflacion por Rubro")  %>%
+  hc_title(text="Treemap de Inflacion.")%>%
+  hc_subtitle(text = "Selecciona los Periodos.") %>% 
+  hc_credits(enabled=TRUE, text= " Fuente: INDEC.",href = "https://www.indec.gob.ar/") %>%
+hc_tooltip(pointFormat = "<b>{point.name}</b>:<br>
+                             Inflacion: {point.value:,.0f}<br>
+                             ") %>% hc_colorAxis(
+      minColor = brewer.pal(7, input$colors)[1],
+      maxColor = brewer.pal(7, input$colors)[7]
+    )
+  
+
+
+})
 
 
 
@@ -429,23 +480,20 @@ Rows {data-height=850}
 
 renderHighchart({
   
-  
   xvar <- input$xvalue
   yvar <- input$yvalue
 
-  
-  if(input$orden == 1 ) {
 
       hc <-   indec %>%
         hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
         type = "polynomial",
         dashStyle = "ShortDash",
         color = "skyblue",
-        order = 1,
+        order = as.numeric(input$orden),
         lineWidth = 5,
         name = "%eq | r2: %r",
         hideInLegend = FALSE)) %>% 
-        hc_colors(c("#9e030b", "#2980b9")) %>% 
+        hc_colors(c("#db141e", "#2980b9")) %>% 
         hc_add_dependency("plugins/highcharts-regression.js") %>% 
         hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
           style = list(color = "black", fontSize = '15px'),
@@ -455,88 +503,7 @@ renderHighchart({
         hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
               style = list(fontSize = '16px', color = "black"))
       
-      
-  }else if (input$orden == 2 ) {
-      hc <-   indec %>%
-        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
-        type = "polynomial",
-        dashStyle = "ShortDash",
-        color = "skyblue",
-        order = 2,
-        lineWidth = 5,
-        name = "%eq | r2: %r",
-        hideInLegend = FALSE)) %>% 
-          hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js") %>% 
-        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
-          style = list(color = "black", fontSize = '15px'),
-          href = "https://www.indec.gob.ar/") %>% 
-        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
-           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
-        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
-              style = list(fontSize = '16px', color = "black"))
-    
-  }else if (input$orden == 3 ) {
-      hc <-   indec %>%
-        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
-        type = "polynomial",
-        dashStyle = "ShortDash",
-        color = "skyblue",
-        order = 3,
-        lineWidth = 5,
-        name = "%eq | r2: %r",
-        hideInLegend = FALSE)) %>% 
-          hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js") %>% 
-        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
-          style = list(color = "black", fontSize = '15px'),
-          href = "https://www.indec.gob.ar/") %>% 
-        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
-           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
-        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
-              style = list(fontSize = '16px', color = "black"))
-    
-  }else if (input$orden == 4 ) {
-      hc <-   indec %>%
-        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
-        type = "polynomial",
-        dashStyle = "ShortDash",
-        color = "skyblue",
-        order = 4,
-        lineWidth = 5,
-        name = "%eq | r2: %r",
-        hideInLegend = FALSE)) %>% 
-          hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js") %>% 
-        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
-          style = list(color = "black", fontSize = '15px'),
-          href = "https://www.indec.gob.ar/") %>% 
-        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
-           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
-        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
-              style = list(fontSize = '16px', color = "black"))
-    
-  }else {
-    hc <-   indec %>%
-        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar)), maxSize = "20%", regression = TRUE, regressionSettings = list(
-        type = "polynomial",
-        dashStyle = "ShortDash",
-        color = "skyblue",
-        order = 5,
-        lineWidth = 5,
-        name = "%eq | r2: %r",
-        hideInLegend = FALSE)) %>% 
-          hc_colors(c("#9e030b", "#2980b9")) %>% 
-          hc_add_dependency("plugins/highcharts-regression.js") %>% 
-        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
-          style = list(color = "black", fontSize = '15px'),
-          href = "https://www.indec.gob.ar/") %>% 
-        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
-           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
-        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
-              style = list(fontSize = '16px', color = "black"))
-    
-  }
+
     
 })
 
@@ -713,19 +680,7 @@ Row {.tabset .tabset-fade}
 ```{r , include= FALSE }
 
 
-
 ```
-
-
-```{r  }
-
-
-
-```
-
-
-
-
 
 
 

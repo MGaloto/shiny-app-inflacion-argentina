@@ -1,11 +1,11 @@
-indecfinal.html
-indecnacional.xlsx
-indecnacional_total.xlsx
 Copy
 values.txt
 hchart
 server.R
 ui.R
 global.R
-
+*.csv
+*.xls
+*.xlsx
+*.html
 
