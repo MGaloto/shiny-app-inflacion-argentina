@@ -65,6 +65,11 @@ if (as.numeric(substr(today(),9,10)) >= 15){
   indec$periodos = as.Date(indec$periodos)
   
   
+  if ( is.na(indec[nrow(indec), 1]) == TRUE){
+    indec <- indec[-c(nrow(indec)), ]
+  }
+  
+  
   
   colnames(indec) = gsub(',', '',colnames(indec))
   colnames(indec) = gsub('á', 'a',colnames(indec))

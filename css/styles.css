@@ -36,3 +36,7 @@
   padding-left: 20px;
   padding-right: 20px;
 }
+
+.section level2 dashboard-row {
+    flex: 150 150 9px;
+}

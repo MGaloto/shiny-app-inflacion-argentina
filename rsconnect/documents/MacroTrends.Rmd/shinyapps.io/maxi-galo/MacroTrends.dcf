@@ -5,9 +5,9 @@ account: maxi-galo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 6234267
-bundleId: 6048865
+bundleId: 6099786
 url: https://maxi-galo.shinyapps.io/MacroTrends/
-when: 1656379128.91655
-lastSyncTime: 1656379128.91655
+when: 1657849017.36474
+lastSyncTime: 1657849017.36474
 asMultiple: FALSE
 asStatic: FALSE
