@@ -5,7 +5,7 @@ output:
      theme : cosmo
      orientation : rows 
      self_contained : TRUE
-     css: css/styles.css
+     css: www/styles.css
      navbar:
        - { title: ".", href: "https://maxi-galo.shinyapps.io/macroargentina/", align: right}
 runtime: shiny
@@ -16,25 +16,14 @@ runtime: shiny
 ```{r setup, include=FALSE}
 
 
-Sys.setlocale("LC_TIME","Spanish") 
 
-
-library(datasets)
 library(flexdashboard)
-library(crosstalk)
 library(tidyverse)
-library(dplyr)
-library(tidymodels)
 library(shiny)
-library(dplyr)
-library(lubridate)
 library(readxl)
 library(highcharter)
-library(rlang)
-library(broom)
-library(viridis)
 library(RColorBrewer)
-library(shinyjs)
+
 
 
 indec_total = read_excel('indecnacional_total.xlsx')
