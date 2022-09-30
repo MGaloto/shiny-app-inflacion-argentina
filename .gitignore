@@ -8,4 +8,7 @@ global.R
 *.xls
 *.xlsx
 *.html
+indec_rmd.Rmd
+glob.R
+download_data.R
 
