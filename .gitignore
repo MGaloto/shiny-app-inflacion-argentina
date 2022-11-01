@@ -11,4 +11,7 @@ global.R
 indec_rmd.Rmd
 glob.R
 download_data.R
-
+.Rhistory
+.Rprofile
+.Renviron
+shinycopy

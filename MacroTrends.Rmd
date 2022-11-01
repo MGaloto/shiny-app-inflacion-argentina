@@ -2,12 +2,12 @@
 title: "Macro Trends Argentina"
 output:
   flexdashboard::flex_dashboard:
-     theme : cosmo
+     theme : spacelab
      orientation : rows 
      self_contained : TRUE
      css: www/styles.css
      navbar:
-       - { title: "Indec", href: "https://www.indec.gob.ar/", align: right}
+       - { title: "Fuente: Indec", href: "https://www.indec.gob.ar/", align: right}
 runtime: shiny
 ---
 
@@ -29,13 +29,11 @@ library(RColorBrewer)
 
 
 
-indec_total = read_excel('indecnacional_total.xlsx')
 
 indec = read_excel('indecnacional.xlsx')
 
 indec$period_filter = substr(as.Date(indec$periodos), 1, 7)
 
-indec_total$period_filter = substr(as.Date(indec_total$periodos), 1, 7)
 
 
 interanual <- function(df, val){
@@ -47,13 +45,52 @@ interanual <- function(df, val){
     return(round(product,1))
 }
 
+valuebox_mensual = function(data, inputy) {
+  valueBox(
+    value = tags$p(paste0(pull(data[,c(inputy)])[nrow(data)], ' %'),
+                   style = "font-size: 100%; color: #ffffff"), 
+    icon = "fa-diamond",
+    caption = tags$p(paste0(substr(data$periodos[nrow(data)],1,7), ' ',inputy,' : Mensual'), 
+                     style = "font-size: 100%; color: #ffffff"),
+    color = '#4dc5ba')
+  
+}
+
+
+
+valuebox_interanual = function(data, inputy) {
+  
+  valueBox(value = tags$p(paste0(interanual(data, inputy), ' %'), 
+                          style = "font-size: 100%; color: #ffffff"), 
+           icon = "fa-line-chart",
+           caption = tags$p(paste0(paste0('Desde: ',substr(data$periodos[nrow(data) - 12],1,7), ' Hasta ', substr(data$periodos[nrow(data)],1,7)), '. Interanual.'), style = "font-size: 100%; color: #ffffff"),
+           color = '#525cd1')
+  
+}
+
+
+valuebox_mayor = function(data) {
+  
+  to_uno = (ncol(data) - length(column_indexes))
+  
+  valueBox(value = tags$p(paste0(t(apply(data[nrow(data), 1:to_uno], 1, sort))[ncol(t(apply(data[nrow(data), 1:to_uno], 1, sort)))], ' %'), 
+                          style = "font-size: 100%; color: #ffffff"), 
+           icon = "fa-bar-chart",
+           caption = tags$p(paste0(colnames(t(apply(data[nrow(data), 1:to_uno], 1, sort)))[ncol(t(apply(data[nrow(data), 1:to_uno], 1, sort)))], ' Mayor Incremento Mensual.'), style = "font-size: 100%; color: #ffffff"),
+           color = '#e03fc8')
+  
+}
+
 column_indexes = c('periodos', 'year', 'Mes', 'month', 'period_filter')
+
+years_vector = unique(indec$year)
+
 
 ```
 
 
 
-Grandes Rubros {data-navmenu="Precios"}
+Precios
 =========================================
 
 
@@ -64,27 +101,14 @@ Rows {data-height=150}
 ### Mensual
 
 
-
 ```{r}
 
 
-renderValueBox({
-          
-       if (input$datafrane == 1){
-        indec = indec
-      }
-      else {
-        indec = indec_total
-      }
-      
 
-  valueBox(
-    value = tags$p(paste0(pull(indec[,c(input$y)])[nrow(indec)], ' %'),
-                   style = "font-size: 100%; color: #ffffff"), 
-           icon = "fa-diamond",
-           caption = tags$p(paste0(substr(indec$periodos[nrow(indec)],1,7), ' Mensual.'), 
-                            style = "font-size: 100%; color: #ffffff"),
-           color = '#54c4b5')
+renderValueBox({
+    
+  valuebox_mensual(indec, input$y)
+
 })
 
 ```
@@ -92,25 +116,20 @@ renderValueBox({
 
 ### Interanual
 
+
 ```{r}
 
+
+
 renderValueBox({
-          
-       if (input$datafrane == 1){
-        indec = indec
-      }
-      else {
-        indec = indec_total
-      }
+  
+  valuebox_interanual(indec, input$y)
       
-  valueBox(value = tags$p(paste0(interanual(indec, input$y), ' %'), style = "font-size: 100%; color: #ffffff"), 
-           icon = "fa-line-chart",
-           caption = tags$p(paste0(paste0(substr(indec$periodos[nrow(indec) - 12],1,7), ' Hasta ', substr(indec$periodos[nrow(indec)],1,7)), '. Interanual.'), style = "font-size: 100%; color: #ffffff"),
-           color = '#525cd1')
 })
 
 
 ```
+
 
 ### Mayor Incremento Mensual
 
@@ -119,25 +138,13 @@ renderValueBox({
 
 
 renderValueBox({
-          
-       if (input$datafrane == 1){
-        indec = indec
-      }
-      else {
-        indec = indec_total
-      }
   
-  to_uno = (ncol(indec) - length(column_indexes))
-      
-  valueBox(value = tags$p(paste0(t(apply(indec[nrow(indec), 1:to_uno], 1, sort))[ncol(t(apply(indec[nrow(indec), 1:to_uno], 1, sort)))], ' %'), style = "font-size: 100%; color: #ffffff"), 
-           icon = "fa-bar-chart",
-           caption = tags$p(paste0(colnames(t(apply(indec[nrow(indec), 1:to_uno], 1, sort)))[ncol(t(apply(indec[nrow(indec), 1:to_uno], 1, sort)))], ' Mayor Incremento Mensual.'), style = "font-size: 100%; color: #ffffff"),
-           color = '#e03fc8')
+  valuebox_mayor(indec)
+  
 })
 
 
 ```
-
 
 
 
@@ -152,17 +159,6 @@ selectInput("y",
             choices =  sort(names(indec[ ,!(colnames(indec) %in%  column_indexes)])), 
             selected = "salud")
 
-br()
-
-
-radioButtons(
-  inputId = 'datafrane',
-  label = tags$strong('DF'),
-  choices = list('Rubros' = 1,'Todos' = 2), selected = 1,
-  inline = TRUE,
-  width = '400px')
-
-
 
 
 ```
@@ -171,7 +167,7 @@ radioButtons(
 Rows {data-height=850}
 ---------------------------------------------------------------
 
-### Nivel General IPC
+### {data-width=600}
 
 ```{r gráfico1}
 
@@ -179,35 +175,23 @@ Rows {data-height=850}
 
 renderHighchart({
       
-        
-       if (input$datafrane == 1){
-        indec = indec
-      }
-      else {
-        indec = indec_total
-      }
-      
-  
       
        highchart() %>% 
           hc_xAxis(categories = as.Date(indec$periodos[12:nrow(indec)]), 
       dateTimeLabelFormats = list(week = "%b-%y")) %>% 
           hc_chart(type = "line") %>% 
-          hc_add_series(name = "Periodo", data = round(((((pull(indec[,c(input$y)])/100)+1) *  ((lag(pull(indec[,c(input$y)]), 1)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(pull(indec[,c(input$y)]), 3)/100)+1)*  ((lag(pull(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)], color = "black") %>% 
-          hc_add_theme(hc_theme_elementary())  %>% 
-          hc_navigator(																									
-                    enabled = TRUE																									
-                  ) %>%		
+          hc_add_series(name = "Periodo", data = round(((((pull(indec[,c(input$y)])/100)+1) *  ((lag(pull(indec[,c(input$y)]), 1)/100)+1) *  ((lag(pull(indec[,c(input$y)]), 2)/100)+1)		*  ((lag(pull(indec[,c(input$y)]), 3)/100)+1)*  ((lag(pull(indec[,c(input$y)]), 4)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 5)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 6)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 7)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 8)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 9)/100)+1)	*  ((lag(pull(indec[,c(input$y)]), 10)/100)+1)				*  ((lag(pull(indec[,c(input$y)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(indec)], color = "black") %>% 
+
           hc_title(text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),
                    style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
           hc_tooltip(crosshairs = TRUE, backgroundColor = "#FCFFC5",
                  shared = TRUE, borderWidth = 2) %>%
           hc_subtitle(text = 'Desde 2017.',
                       style = list(fontSize = '16px', color = "black")) %>% 
-          hc_credits(enabled = TRUE, text = '@MGaloto',
-                     style = list(fontSize = '16px', color = "black"))
+          hc_credits(enabled = TRUE, text = "Fuente: INDEC",align = "right",verticalAlign = "bottom",
+    style = list(color = "#2b908f", fontSize = '10px'),
+               href = " https://www.indec_total.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls") 
     
-  
 })
 
 
@@ -217,10 +201,102 @@ renderHighchart({
 ```
 
 
-Grafico de Barras {data-navmenu="Precios"}
+### {data-width=400}
+
+```{r}
+
+renderHighchart({
+    
+    
+  data = indec %>% 
+    select(input$y, 'year') %>% 
+    mutate(interanual = format(round((pull(indec[,c(input$y)]) / 100 ) + 1, 3), nsmall = 3))  %>%
+    select('interanual', 'year') %>% 
+    group_by(year) %>% 
+    summarise(prod = format(round(prod(as.numeric(interanual)), 2), nsmall = 2)) %>% 
+    mutate(interanual = (as.numeric(prod) - 1)*100)
+  
+
+  data %>%
+     hchart('column', hcaes(x = year, y = interanual),
+         showInLegend = F,
+         borderColor = "black",
+         maxSize = "15%",
+         dataLabels = list(enabled = TRUE, 
+                           format = '{point.y} %')) %>%
+    hc_title(text = paste0('Inflacion ',input$y,' anual'),
+             style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
+    hc_yAxis(labels = list(style = list(color = "black")),
+           tickColor = "black") %>% 
+    hc_xAxis(labels = list(style = list(color = "black")),
+           tickColor = "black") %>% 
+    hc_tooltip(pointFormat =  "{series.name} <br>
+    {point.y} %", crosshairs = TRUE, backgroundColor = "#FCFFC5",
+                 shared = TRUE, borderWidth = 2) %>%
+    hc_add_theme(hc_theme_elementary())  %>% 
+    hc_colors(c("#f777a0")) %>% 
+    hc_credits(enabled = TRUE, text = "Fuente: INDEC",align = "right",verticalAlign = "bottom",
+    style = list(color = "#2b908f", fontSize = '10px'),
+               href = " https://www.indec_total.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls") 
+
+})
+```
+
+
+Grafico de Barras
 =========================================
 
 
+
+Rows {data-height=150}
+-------------------------------------
+
+### Mensual
+
+
+```{r}
+
+renderValueBox({
+    
+  valuebox_mensual(indec, input$y_dos_2)
+
+})
+
+
+
+```
+
+
+### Interanual
+
+
+```{r}
+
+renderValueBox({
+  
+  valuebox_interanual(indec, input$y_dos_2)
+      
+})
+
+
+
+```
+
+
+### Mayor Incremento Mensual
+
+```{r}
+
+
+renderValueBox({
+  
+  valuebox_mayor(indec)
+  
+})
+
+
+
+```
 
 
 Column {.sidebar} {data-height=100}
@@ -230,7 +306,7 @@ Column {.sidebar} {data-height=100}
 
 
 
-selectInput("y_dos_2", label = tags$strong("Seleccionar Rubros", align = "center"), choices = gsub("_", " ", sort(names(indec_total[,-c(46,47,48,49)]))))
+selectInput("y_dos_2", label = tags$strong("Seleccionar Rubros", align = "center"), choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17,18)]))))
 
 br()
 
@@ -239,16 +315,28 @@ br()
 selectInput(
     inputId =  "date_one_1", 
     label = tags$strong("Año 1", align = "center"), 
-    choices = c(2017:2022),
+    choices = years_vector,
     selected = 2017
 )
 
 selectInput(
     inputId =  "date_two_2", 
     label = tags$strong("Año 2", align = "center"), 
-    choices = 2017:2022,
+    choices = years_vector,
     selected = 2022
 )
+
+
+observe({
+        if(!is.null(input$date_two_2))
+            updateSelectInput(session, "date_one_1", 
+                              choices = years_vector[!(years_vector %in% input$date_two_2)], 
+                              selected = isolate(input$date_one_1))})
+observe({
+        if(!is.null(input$date_one_1))
+            updateSelectInput(session, "date_two_2", 
+                              choices = years_vector[!(years_vector %in% input$date_one_1)], 
+                              selected = isolate(input$date_two_2) )})
 
 
 ```
@@ -264,19 +352,17 @@ Rows {data-height=850}
 renderHighchart({
   
 
-    
-    
     indec_totalgrafic <- highchart() %>%
     hc_chart(type = "column")  %>%
     hc_title(text = paste0('Inflacion ',input$y_dos_2),
              style = list(fontSize = '25px', fontWeight = 'bold')) %>% 
-    hc_xAxis(categories = indec_total$month,
+    hc_xAxis(categories = indec$month,
              title = 'Year',
              title = list(text = "Mes")) %>%
     hc_add_series(name = input$date_one_1,
-                  data = pull(indec_total[,c(input$y_dos_2)])[indec_total$year == input$date_one_1]) %>%
+                  data = pull(indec[,c(input$y_dos_2)])[indec$year == input$date_one_1]) %>%
     hc_add_series(name = input$date_two_2,
-                  data = pull(indec_total[,c(input$y_dos_2)])[indec_total$year == input$date_two_2]) %>%
+                  data = pull(indec[,c(input$y_dos_2)])[indec$year == input$date_two_2]) %>%
     hc_yAxis(title = list(text = "Porcentaje")) %>% 
     hc_tooltip(pointFormat =  "{series.name} <br>
     {point.y} %", crosshairs = TRUE) %>%
@@ -295,269 +381,5 @@ renderHighchart({
 
 
 ```
-
-
-
-
-
-Regresión  {data-navmenu="Variables"}
-======================================================
-
-
-
-
-Column {.sidebar} {data-height=100}
--------------------------------------
-
-```{r}
-
-br()
-
-
-selectInput(inputId = 'xvalue',
-            label = tags$strong('Variable X'),
-            choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17,18)]))), selected = "Frutas")
-
-
-selectInput(inputId = 'yvalue',
-            label = tags$strong('Variable Y'),
-            choices = gsub("_", " ", sort(names(indec[,-c(14,15,16,17,18)]))), selected = "Educacion")
-
-
-
-radioButtons(
-  inputId = 'orden',
-  label = tags$strong('Orden'),
-  choices = c(1,2,3,4,5), selected = 1,
-  inline = TRUE,
-  width = '400px')
-
-
-```
-
-
-
-
-Rows {data-height=850}
----------------------------------------------------------------
-
-### Scatter Macro
-
-```{r}
-
-
-renderHighchart({
-  
-  xvar <- input$xvalue
-  yvar <- input$yvalue
-
-
-      hc <-   indec %>%
-        hchart("scatter", hcaes(x = !!sym(xvar), y = !!sym(yvar), names = !!sym(xvar), size = !!sym(yvar)), maxSize = "5%", regression = TRUE, regressionSettings = list(
-        type = "polynomial",
-        dashStyle = "ShortDash",
-        color = "skyblue",
-        order = as.numeric(input$orden),
-        lineWidth = 5,
-        name = "%eq | r2: %r",
-        hideInLegend = FALSE)) %>% 
-        hc_colors(c("#db141e", "#2980b9")) %>% 
-        hc_add_dependency("plugins/highcharts-regression.js") %>% 
-        hc_credits(enabled = TRUE, text = "Fuente: Indec",align = "right",verticalAlign = "bottom",
-          style = list(color = "black", fontSize = '15px'),
-          href = "https://www.indec.gob.ar/") %>% 
-        hc_title(text = paste0('Scatter Plot - Linear Regression Order: ',input$orden),
-           style = list(fontSize = '20px', fontWeight = 'bold')) %>% 
-        hc_subtitle(text = paste0('<b><br>X: ', input$xvalue, ' Y: ', input$yvalue,'</br></b>'),
-              style = list(fontSize = '16px', color = "black"))
-      
-
-    
-})
-
-
-```
-
-
-
-Ficha Técnica {data-orientation=columns data-navmenu="Variables"}
-=========================================================
-
-
-Column {data-width = 700}
--------------------------------------
-
-### Ficha Técnica
-
-```{r }
-
-
-
-```
-  
-Column {tabset .tabset-fade}
------------------------------------------------
-
-
-### Ficha Técnica
-
-
-
-
-
-### Ficha Técnica
-
-
-```{r }
-
-
-
-```
-
-### Ficha Técnica
-
-```{r }
-
-
-
-```
-
-
-
-Ficha Técnica 2 {data-navmenu="Variables"}
-======================================================
-
-Row {.tabset .tabset-fade}
--------------------------------------
-
-### Ficha Técnica 2 
-
-
-```{r , include= FALSE }
-
-
-
-```
-
-```{r  }
-
-
-```
-
-### Ficha Técnica 3
-
-```{r  }
-
-
-
-```
-
-Balanza {data-navmenu="Comercio Exterior"}
-=========================================================================
-
-
-### Balanza 1
-
-```{r , include= FALSE }
-
-
-```
-
-
-```{r  }
-
-
-```
-
-Balanza 2 {data-navmenu="Comercio Exterior"}
-=================================================================================
-
-
-
-```{r ,include=FALSE }
-
-
-```							 
-							 
-```{r ,echo=FALSE }
-
-```
-
-Balanza 3 {data-navmenu="Comercio Exterior"}
-=================================================================================
-
-
-## Saldo
-
-
-
-```{r , include=FALSE }
-
-
-
-```
-
-```{r  , include= FALSE,eval=FALSE}
-
-
-
-```
-
-
-
-
-```{r  }
-
-
-
-```
-
-Row {data-height=100}
--------------------------------------
-
-
-
-
-
-
-
-Resumen 1 {data-navmenu="Resumen"}
-=================================================================================
-
-Row {.tabset .tabset-fade}
--------------------------------------
-
-### Ficha
-
-```{r , include= FALSE }
-
-
-
-```
-
-
-```{r  }
-
-
-
-```
-
-
-### Variaciones
-
-```{r , include= FALSE }
-
-
-```
-
-
-
-
-
-
-
-
-
-
 
 
