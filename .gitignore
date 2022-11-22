@@ -15,3 +15,4 @@ download_data.R
 .Rprofile
 .Renviron
 shinycopy
+rsconnect/
