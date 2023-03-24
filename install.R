@@ -1,4 +1,4 @@
-install.packages('rsconnect', version='0.8.25')
+install.packages('rsconnect')
 install.packages('flexdashboard', version='0.5.2')
 install.packages('tidyverse', version='1.3.1')
 install.packages('shiny', version='1.7.1')
