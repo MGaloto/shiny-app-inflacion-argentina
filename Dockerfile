@@ -3,7 +3,7 @@ FROM rocker/shiny:4.1.3
 
 #COPY install.R install.R
 #RUN Rscript install.R
-
+RUN install2.r rsconnect
 
 # Instalar paquete remotes para controlar las versiones de otros paquetes
 RUN R -e 'install.packages("remotes", repos="http://cran.rstudio.com")'
@@ -12,7 +12,6 @@ RUN R -e 'install.packages("remotes", repos="http://cran.rstudio.com")'
 RUN R -e "install.packages('highcharter', repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages('XML', repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages('rlist', repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('rsconnect', repos='http://cran.rstudio.com/')"
 
 RUN R -e 'remotes::install_version(package = "tidyverse", version = "1.3.1", dependencies = TRUE)'
 RUN R -e 'remotes::install_version(package = "shiny", version = "1.7.1", dependencies = TRUE)'
