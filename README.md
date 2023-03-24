@@ -114,6 +114,6 @@ https://www.indec.gob.ar/
 
 <ui>
 <li>
-https://maxi-galo.shinyapps.io/MacroTrends
+https://maxi-galo.shinyapps.io/macrotrends
 </li>
 </ui>
