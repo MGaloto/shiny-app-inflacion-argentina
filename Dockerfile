@@ -1,4 +1,4 @@
-FROM rocker/shiny:4.2.1
+FROM rocker/shiny:4.1.3
 
 
 COPY install.R install.R
