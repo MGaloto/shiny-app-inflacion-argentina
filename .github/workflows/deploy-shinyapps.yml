@@ -6,11 +6,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main, master ]
-  schedule:  
-    - cron:  '0 */12 * * *'
-    # cada doce horas '0 */12 * * *'
-    # cada 10 min '*/10 * * * *'
-    # '0 0 * * *' # Ejecuta el cron una vez al día a las 00:00 UTC
+
     
   workflow_run:
     workflows: ["Update data"]
@@ -36,10 +32,7 @@ jobs:
       - name: Build image
         run: docker build -t main . 
 
-      - name: Install dependencies
-        run: |
-          install.packages(c("rtweet","highcharter", "XML", "rlist", "flexdashboard", "tidyverse", "shiny", "readxl", "RColorBrewer", "httr", "lubridate", "writexl"))
-        shell: Rscript {0}
+
 
       # run the docker image supply the secrets from the github secrets store.  
       - name: execute

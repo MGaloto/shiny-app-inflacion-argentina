@@ -28,7 +28,6 @@ library(highcharter)
 library(RColorBrewer)
 
 
-source("downloadData.R")
 
 indec = read_excel("indecnacional.xlsx")
 
