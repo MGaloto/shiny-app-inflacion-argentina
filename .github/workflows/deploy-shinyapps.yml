@@ -35,6 +35,12 @@ jobs:
       # build the docker image and give it the name main
       - name: Build image
         run: docker build -t main . 
+
+      - name: Install dependencies
+        run: |
+          install.packages(c("rtweet","highcharter", "XML", "rlist", "flexdashboard", "tidyverse", "shiny", "readxl", "RColorBrewer", "httr", "lubridate", "writexl"))
+        shell: Rscript {0}
+
       # run the docker image supply the secrets from the github secrets store.  
       - name: execute
         run: >
