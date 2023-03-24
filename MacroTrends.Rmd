@@ -28,9 +28,9 @@ library(highcharter)
 library(RColorBrewer)
 
 
+source("downloadData.R")
 
-
-indec = read_excel('indecnacional.xlsx')
+indec = read_excel("indecnacional.xlsx")
 
 indec$period_filter = substr(as.Date(indec$periodos), 1, 7)
 
