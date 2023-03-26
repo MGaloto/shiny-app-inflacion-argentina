@@ -13,7 +13,7 @@
   border-radius: .3rem;
 }
 
-.navbar-inverse {background-image: linear-gradient(#51a4ff, #4c88ca 50%, #799abd);
+.navbar-inverse {background-image: linear-gradient(#2a343e, #111417 50%, #232b33);
                  text-shadow: 0 -1px 0 rgba(0,0,0,0.3); 
                  border: solid 3px #bec3c7;
 }
