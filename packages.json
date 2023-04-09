@@ -1,5 +1,10 @@
 {
     "packages": [
+        
+        {
+            "package": "rsconnect",
+            "version":"0.8.25"
+        },
         {
             "package": "cpp11",
             "version":"0.4.2"
