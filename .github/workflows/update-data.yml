@@ -23,9 +23,7 @@ jobs:
           use-public-rspm: true
           
       - name: Install dependencies
-        run: |
-          install.packages(c("highcharter", "XML", "rlist", "flexdashboard", "tidyverse", "shiny", "readxl", "RColorBrewer", "httr", "lubridate", "writexl"))
-        shell: Rscript {0}
+        run: Rscript packages_rscript/install-dependencies.R
         
       - name: Update data
         run: |
