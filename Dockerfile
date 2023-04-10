@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # installing R packages
+RUN R -e "install.packages('rsconnect')"
 RUN mkdir packages
 COPY install_packages.R packages/
 COPY packages.json packages/
