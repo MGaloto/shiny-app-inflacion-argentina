@@ -26,17 +26,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # installing R packages
-RUN R -e "install.packages('rsconnect')"
 RUN mkdir packages
 COPY install_packages.R packages/
 COPY packages.json packages/
 RUN Rscript packages/install_packages.R
 
-WORKDIR /home/MacroTrends
-COPY index.Rmd index.Rmd
-COPY deploy.R deploy.R
-COPY www/styles.css www/styles.css
-COPY packages_rscript/install-dependencies.R packages_rscript/install-dependencies.R
-COPY downloadData.R downloadData.R
-COPY indecnacional.xlsx indecnacional.xlsx
-CMD Rscript deploy.R
+
+EXPOSE 8787

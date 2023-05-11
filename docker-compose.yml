@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  rstudio:
+    image: "mgaloto/flexdashiny_01" 
+    ports:
+      - "8787:8787"
+    volumes:
+      - type: "bind"
+        source: "C:/Users/maxig/Desktop/Carpetas/Trabajos en R/Shiny Indec App"
+        target: "/home/rstudio"
+      - type: "bind"
+        source: "C:/Program Files/RStudio/bin"
+        target: "/home/rstudio/.config/rstudio"
