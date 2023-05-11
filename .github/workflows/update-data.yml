@@ -1,6 +1,9 @@
 name: Update data
 
 on:
+  # Activa el flujo de trabajo en eventos de solicitud push o pull, pero solo para la rama principal
+  push:
+    branches: [ main, master ]
   schedule:  
     - cron: '0 19,21 11,17 * *' # el dia 11 y 17 del mes a las 16 y 18 hs argentina
     # cada doce horas '0 */12 * * *'
