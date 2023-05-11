@@ -2,7 +2,7 @@ name: Update data
 
 on:
   schedule:  
-    - cron: '0 21 17 * *' # el dia 17 del mes a las 18 hs argentina
+    - cron: '0 19,21 11,17 * *' # el dia 11 y 17 del mes a las 16 y 18 hs argentina
     # cada doce horas '0 */12 * * *'
     # cada 10 min '*/10 * * * *'
     # '0 0 * * *' # Ejecuta el cron una vez al día a las 00:00 UTC
