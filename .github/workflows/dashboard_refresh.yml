@@ -27,7 +27,7 @@ jobs:
         ref: 'main'
 
     - name: Render Update
-      run: bash ./bash/render_app.sh "MGaloto" "maxigaloto@hotmail.com"
+      run: bash ./bash/render_dashboard.sh "MGaloto" "maxigaloto@hotmail.com"
 
     - name: Deploy app
       run: Rscript deploy.R
