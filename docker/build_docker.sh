@@ -6,7 +6,7 @@ LGREEN=$(printf '\033[1;32m')
 echo "${LGREEN}Build the docker${LGREEN}"
 
 docker build . --progress=plain \
-               -t mgaloto/flexdashiny_01
+               -t mgaloto/flexdashiny_02
 
 if [[ $? = 0 ]] ; then
 echo "${LGREEN}Pushing docker...${LGREEN}"

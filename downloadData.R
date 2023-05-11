@@ -7,6 +7,7 @@ library(writexl)
 
 
 
+
 url = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
 
 

@@ -19,7 +19,7 @@ runtime: shiny
 #https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/
 #https://fontawesome.com/v4/cheatsheet/
 
-source("downloadData.R")
+#source("downloadData.R")
 
 library(flexdashboard)
 library(tidyverse)
@@ -29,6 +29,7 @@ library(highcharter)
 library(RColorBrewer)
 
 
+#packageVersion("rsconnect")
 
 indec = read_excel("indecnacional.xlsx")
 
