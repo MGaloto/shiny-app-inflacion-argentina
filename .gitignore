@@ -13,5 +13,7 @@ download_data.R
 .Rhistory
 .Rprofile
 .Renviron
+.config
+.local
 shinycopy
 rsconnect/
