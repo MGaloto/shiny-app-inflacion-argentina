@@ -10,6 +10,10 @@
             "version":"0.8.25"
         },
         {
+            "package": "shiny",
+            "version":"1.7.1"
+        },
+        {
             "package": "flexdashboard",
             "version":"0.5.2"
         },

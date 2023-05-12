@@ -18,7 +18,7 @@ jobs:
       pages: write
 
     container: 
-      image: mgaloto/flexdashiny_02
+      image: mgaloto/flexdashiny_03
 
     steps:
     - name: checkout_repo

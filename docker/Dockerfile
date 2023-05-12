@@ -1,4 +1,5 @@
-FROM rocker/shiny:4.1.3
+# Pulling Rocker image with RStudio and R version 4.2
+FROM rocker/rstudio:4.2
 
 
 # Disabling the authentication step

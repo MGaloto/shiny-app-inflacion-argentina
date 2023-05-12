@@ -1,0 +1,146 @@
+0:#https://fontawesome.com/icons/chart-simple?s=solid
+0:#https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/
+0:#https://fontawesome.com/v4/cheatsheet/
+0:library(flexdashboard)
+0:library(tidyverse)
+0:library(shiny)
+0:library(readxl)
+0:library(highcharter)
+0:library(RColorBrewer)
+0:indec = read_excel("indecnacional.xlsx")
+0:indec$period_filter = substr(as.Date(indec$periodos), 1, 7)
+0:interanual <- function(df, val){
+0:values = c()
+0:for (i in 0:11) {
+0:value_lag = lag((pull((df[,c(val)]) / 100) + 1), i)[nrow(df)]
+0:values[i + 1] <- value_lag}
+0:product = (prod(values) - 1) * 100
+0:return(round(product,1))
+0:}
+0:valuebox_mensual = function(data, inputy) {
+0:valueBox(
+0:value = tags$p(paste0(pull(data[,c(inputy)])[nrow(data)], ' %'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:icon = "fa-diamond",
+0:caption = tags$p(paste0(substr(data$periodos[nrow(data)],1,7), ' ',inputy,' : Mensual'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:color = '#237d75')
+0:}
+0:valuebox_interanual = function(data, inputy) {
+0:valueBox(value = tags$p(paste0(interanual(data, inputy), ' %'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:icon = "fa-line-chart",
+0:caption = tags$p(paste0(paste0('Desde: ',substr(data$periodos[nrow(data) - 12],1,7), ' Hasta ', substr(data$periodos[nrow(data)],1,7)), '. Interanual.'), style = "font-size: 100%; color: #ffffff"),
+0:color = '#525cd1')
+0:}
+0:valuebox_mayor = function(data) {
+0:to_uno = (ncol(data) - length(column_indexes))
+0:valueBox(value = tags$p(paste0(t(apply(data[nrow(data), 1:to_uno], 1, sort))[ncol(t(apply(data[nrow(data), 1:to_uno], 1, sort)))], ' %'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:icon = "fa-bar-chart",
+0:caption = tags$p(paste0(colnames(t(apply(data[nrow(data), 1:to_uno], 1, sort)))[ncol(t(apply(data[nrow(data), 1:to_uno], 1, sort)))], ' Mayor Incremento Mensual.'), style = "font-size: 100%; color: #ffffff"),
+0:color = '#e03fc8')
+0:}
+0:column_indexes = c('periodos', 'year', 'Mes', 'month', 'period_filter')
+0:years_vector = unique(indec$year)
+0:View(indec)
+0:library(httr)
+0:library(readxl)
+0:library(lubridate)
+0:library(writexl)
+0:url = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(today(),6,7),'_',substr(today(),3,4), '.xls')
+0:get_dataframe = function(url, time_out){
+0:if (as.numeric(substr(today(),9,10)) >= 14){
+0:tryCatch({
+0:GET(url,
+0:timeout(time_out),
+0:write_disk(file <- tempfile(fileext = ".xls")))
+0:indec = read_excel(file)
+0:indec = indec[9:21,]
+0:n_col = ncol(indec) - 1
+0:periodos = seq(as.Date("2017/1/1"), by = "month", length.out = n_col)
+0:indec = data.frame(t(indec))
+0:colnames(indec) = c(indec[1,])
+0:row.names(indec) = 1:nrow(indec)
+0:indec = indec[-1,]
+0:indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2, trimws )
+0:indec[ , c(1:(ncol(indec)))] = apply(indec[ , c(1:(ncol(indec)))], 2,
+0:function(x) as.numeric(as.character(x)))
+0:indec$periodos = periodos
+0:indec$year = year(indec$periodos)
+0:indec$Mes = as.numeric(substr(indec$periodos, 6 , 7))
+0:indec$periodos = as.Date(indec$periodos)
+0:if ( is.na(indec[nrow(indec), 1]) == TRUE){
+0:indec <- indec[-c(nrow(indec)), ]
+0:}
+0:colnames(indec) = gsub(',', '',colnames(indec))
+0:colnames(indec) = gsub('á', 'a',colnames(indec))
+0:colnames(indec) = gsub('é', 'e',colnames(indec))
+0:colnames(indec) = gsub('í', 'i',colnames(indec))
+0:colnames(indec) = gsub('ó', 'o',colnames(indec))
+0:colnames(indec) = gsub('ú', 'u',colnames(indec))
+0:colnames(indec)[2] = 'Alimentos y bebidas'
+0:colnames(indec)[5] = 'Vivienda Agua y Elec'
+0:colnames(indec)[4] = 'Prendias y Calzado'
+0:colnames(indec)[6] = 'Equip y Mant del Hogar'
+0:indec$month = month.abb[indec$Mes]
+0:write_xlsx(indec, 'indecnacional.xlsx' )
+0:}, error = function(e) {
+0:indec = read_xlsx('indecnacional.xlsx')
+0:return(indec)
+0:})
+0:}
+0:else {
+0:indec = read_xlsx('indecnacional.xlsx')
+0:return(indec)
+0:}
+0:}
+0:indec = get_dataframe(url,10000)
+0:View(indec)
+0:#https://fontawesome.com/icons/chart-simple?s=solid
+0:#https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/
+0:#https://fontawesome.com/v4/cheatsheet/
+0:library(flexdashboard)
+0:library(tidyverse)
+0:library(shiny)
+0:library(readxl)
+0:library(highcharter)
+0:library(RColorBrewer)
+0:indec = read_excel("indecnacional.xlsx")
+0:indec$period_filter = substr(as.Date(indec$periodos), 1, 7)
+0:interanual <- function(df, val){
+0:values = c()
+0:for (i in 0:11) {
+0:value_lag = lag((pull((df[,c(val)]) / 100) + 1), i)[nrow(df)]
+0:values[i + 1] <- value_lag}
+0:product = (prod(values) - 1) * 100
+0:return(round(product,1))
+0:}
+0:valuebox_mensual = function(data, inputy) {
+0:valueBox(
+0:value = tags$p(paste0(pull(data[,c(inputy)])[nrow(data)], ' %'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:icon = "fa-diamond",
+0:caption = tags$p(paste0(substr(data$periodos[nrow(data)],1,7), ' ',inputy,' : Mensual'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:color = '#237d75')
+0:}
+0:valuebox_interanual = function(data, inputy) {
+0:valueBox(value = tags$p(paste0(interanual(data, inputy), ' %'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:icon = "fa-line-chart",
+0:caption = tags$p(paste0(paste0('Desde: ',substr(data$periodos[nrow(data) - 12],1,7), ' Hasta ', substr(data$periodos[nrow(data)],1,7)), '. Interanual.'), style = "font-size: 100%; color: #ffffff"),
+0:color = '#525cd1')
+0:}
+0:valuebox_mayor = function(data) {
+0:to_uno = (ncol(data) - length(column_indexes))
+0:valueBox(value = tags$p(paste0(t(apply(data[nrow(data), 1:to_uno], 1, sort))[ncol(t(apply(data[nrow(data), 1:to_uno], 1, sort)))], ' %'),
+0:style = "font-size: 100%; color: #ffffff"),
+0:icon = "fa-bar-chart",
+0:caption = tags$p(paste0(colnames(t(apply(data[nrow(data), 1:to_uno], 1, sort)))[ncol(t(apply(data[nrow(data), 1:to_uno], 1, sort)))], ' Mayor Incremento Mensual.'), style = "font-size: 100%; color: #ffffff"),
+0:color = '#e03fc8')
+0:}
+0:column_indexes = c('periodos', 'year', 'Mes', 'month', 'period_filter')
+0:years_vector = unique(indec$year)
+0:View(indec)
+0:View(indec)
