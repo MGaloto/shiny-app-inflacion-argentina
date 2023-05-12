@@ -16,7 +16,8 @@ setAccountInfo(name = error_on_missing_name("SHINY_ACC_NAME"),
                secret = error_on_missing_name("SECRET"))
 
 # Deploy the application.
-deployApp(appFiles = c("index.Rmd", 
+deployApp(appName="macrotrends",
+          appFiles = c("index.Rmd", 
                        "downloadData.R",
                        "www/styles.css",
                        "indecnacional.xlsx"))
