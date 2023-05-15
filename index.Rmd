@@ -3,11 +3,9 @@ title: "Precios Argentina"
 output:
   flexdashboard::flex_dashboard:
      theme : spacelab
-     orientation : rows 
      self_contained : TRUE
      css: www/styles.css
-     navbar:
-       - { title: "Fuente: Indec", href: "https://www.indec.gob.ar/", align: right}
+
 runtime: shiny
 ---
 
@@ -94,13 +92,13 @@ years_vector = unique(indec$year)
 
 
 
-Precios
+Precios {data-orientation=rows}
 =========================================
 
 
 
-Rows {data-height=150}
--------------------------------------
+Row  {data-height=125}
+-----------------------------------------------------------------------
 
 ### Mensual
 
@@ -142,9 +140,7 @@ renderValueBox({
 
 
 renderValueBox({
-  
   valuebox_mayor(indec)
-  
 })
 
 
@@ -152,23 +148,33 @@ renderValueBox({
 
 
 
-Column {.sidebar} {data-height=100}
--------------------------------------
+Row  {data-height=70}
+-----------------------------------------------------------------------
 
 ```{r}
 
 
 selectInput("y", 
-            label = tags$strong("Seleccionar Rubros", align = "center"),
+            label = tags$strong("Seleccionar Rubro", align = "center"),
             choices =  sort(names(indec[ ,!(colnames(indec) %in%  column_indexes)])), 
             selected = "salud")
 
+span(textOutput("message"), style="color:black; font-size: 22px; text-align:center; font-family:math; align-self:center;")
+
+output$message <- renderText({
+    paste0(
+      "Evolucion de los precios en Argentina desde enero de 2017 hasta ",
+      format(max(indec$periodos), "%B"),
+      " de ", as.character(max(indec$year)))
+  })
 
 
 ```
 
 
-Rows {data-height=850}
+
+
+Rows {data-height=880}
 ---------------------------------------------------------------
 
 ### {data-width=600}
@@ -193,7 +199,7 @@ renderHighchart({
       name = str_to_title(gsub("_", " ", input$y)), 
       id = "trend",
       showInLegend = TRUE) %>%
-      highcharter::hc_tooltip(crosshairs = TRUE, pointFormat = "Base: {point.y}") %>%
+      highcharter::hc_tooltip(crosshairs = TRUE, pointFormat = "Tasa Interanual: {point.y}") %>%
       
       highcharter::hc_plotOptions(
           line = list(
@@ -255,6 +261,8 @@ renderHighchart({
 
 ### {data-width=400}
 
+
+
 ```{r}
 
 renderHighchart({
@@ -309,7 +317,7 @@ renderHighchart({
       ) %>%
     
       highcharter::hc_caption(
-          text = paste0("Serie Temporal de  ",str_to_title(gsub("_", " ", input$y)),". <br>Fuente: Indec.")) %>%
+          text = paste0("Grafico de barras de ",str_to_title(gsub("_", " ", input$y)),". <br>Fuente: Indec.")) %>%
       hc_title(
         text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$y)]))),
         style = list(fontSize = '16px', fontWeight = 'bold')) %>% 
@@ -333,3 +341,39 @@ renderHighchart({
 
 
 
+
+
+About {data-orientation=rows}
+=====================================
+
+
+**Dashboard sobre los precios en Argentina**
+
+Este Dashboard tiene la finalidad de mostrar la variación mensual e interanual de los distintos sectores de la economía para la región GBA.
+
+Podemos ver las siguientes métricas:
+
+* Variación interanual de la inflación.
+* Variación mensual de la inflación.
+* Variación anual acumulada.
+
+
+**Data**
+
+Los datos utilizados provienen de la pagina oficial del [indec](https://www.indec.gob.ar/)
+
+**Packages**
+
+El dashboard utiliza los siguientes paquetes de R:
+
+-   Dashboard - [flexdashboard](https://pkgs.rstudio.com/flexdashboard/index.html)
+-   Data viz - [highcharter](https://jkunst.com/highcharter/index.html)
+-   Data Mining - [dplyr](https://dplyr.tidyverse.org/), [tidyr](https://tidyr.tidyverse.org/), [lubridate](https://lubridate.tidyverse.org/)
+
+
+
+**Contacto**
+
+-   [Linkedin](https://www.linkedin.com/in/maximilianogaloto)
+-   [Blog](https://maxi-galo.netlify.app/)
+-   [Github](https://github.com/MGaloto)
