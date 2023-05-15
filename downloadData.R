@@ -13,7 +13,7 @@ url = paste0('https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_',substr(toda
 
 get_dataframe = function(url, time_out){
   
-  if (as.numeric(substr(today(),9,10)) >= 14){
+  if (as.numeric(substr(today(),9,10)) >= 10){
   
     
     tryCatch({
