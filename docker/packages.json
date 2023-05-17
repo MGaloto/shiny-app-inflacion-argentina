@@ -10,14 +10,6 @@
             "version":"0.8.25"
         },
         {
-            "package": "shiny",
-            "version":"1.7.1"
-        },
-        {
-            "package": "flexdashboard",
-            "version":"0.5.2"
-        },
-        {
             "package": "XML",
             "version":"3.99.0.8"
         },
@@ -54,8 +46,16 @@
             "version":"0.4.6.2"
         },
         {
-            "package": "RColorBrewer",
-            "version":"1.1.2"
+            "package": "waiter",
+            "version":"0.2.4"
+        },
+        {
+            "package": "shinycssloaders",
+            "version":"1.0.0"
+        },
+        {
+            "package": "bs4Dash",
+            "version":"2.2.1"
         }
         
        

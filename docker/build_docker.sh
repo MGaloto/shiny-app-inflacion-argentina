@@ -6,11 +6,11 @@ LGREEN=$(printf '\033[1;32m')
 echo "${LGREEN}Build the docker${LGREEN}"
 
 docker build . --progress=plain \
-               -t mgaloto/flexdashiny_03
+               -t mgaloto/bs4dashiny:01
 
 if [[ $? = 0 ]] ; then
 echo "${LGREEN}Pushing docker...${LGREEN}"
-docker push mgaloto/flexdashiny_03
+docker push mgaloto/bs4dashiny:01
 else
 echo "${LRED}Docker build failed${LRED}"
 fi
