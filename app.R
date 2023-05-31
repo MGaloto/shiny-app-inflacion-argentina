@@ -307,7 +307,7 @@ server <- function(input, output,session) {
             
             hc_credits(enabled = TRUE, text = "INDEC",align = "right",verticalAlign = "bottom",
                        style = list(color = "#2b908f", fontSize = '10px', fontWeight = 'bold', color = "black"),
-                       href = " https://www.indec_total.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls") 
+                       href = " https://www.indec.gob.ar/") 
     })
     # SV barplot ----------------------------------------------------------------------
     
@@ -328,17 +328,7 @@ server <- function(input, output,session) {
             highcharter::hc_tooltip(
                 crosshairs = FALSE, 
                 pointFormat = "Inflacion: {point.y} %") %>%
-            highcharter::hc_plotOptions(
-                line = list(
-                    color = "red",
-                    marker = list(
-                        fillColor = "white",
-                        lineWidth = 2,
-                        radius=1,
-                        lineColor = NULL
-                    )
-                )
-            ) %>%
+
             # highcharter::hc_chart(
             #     backgroundColor = "#d6cece"  # Cambia aquí el color de fondo
             # ) %>% 
@@ -375,11 +365,11 @@ server <- function(input, output,session) {
                 crosshairs = TRUE,
                 backgroundColor = "#F0F0F0",
                 shared = TRUE, 
-                borderWidth = 5
+                borderWidth =1
             ) %>% 
             hc_credits(enabled = TRUE, text = "INDEC",align = "right",verticalAlign = "bottom",
                        style = list(color = "#2b908f", fontSize = '10px'),
-                       href = " https://www.indec_total.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls")
+                       href = " https://www.indec.gob.ar/")
         
         
         
@@ -406,7 +396,7 @@ server <- function(input, output,session) {
                 pointFormat = "Inflacion: {point.y} %") %>% 
             hc_credits(enabled = TRUE, text = "INDEC",align = "right",verticalAlign = "bottom",
                        style = list(color = "#2b908f", fontSize = '10px'),
-                       href = " https://www.indec_total.gob.ar/ftp/cuadros/economia/sh_ipc_02_22.xls") %>% 
+                       href = " https://www.indec.gob.ar/") %>% 
             hc_title(
                 text = "Inflacion por Sector",
                 style = list(fontSize = '16px', fontWeight = 'bold', color = "black")) %>% 

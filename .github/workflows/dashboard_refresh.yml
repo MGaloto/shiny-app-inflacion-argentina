@@ -35,3 +35,7 @@ jobs:
         SHINY_ACC_NAME: ${{ secrets.SHINY_ACC_NAME }}
         TOKEN: ${{ secrets.TOKEN }}
         SECRET: ${{ secrets.SECRET }}
+
+    retry:
+      max-runs: 2
+      min-seconds: 600

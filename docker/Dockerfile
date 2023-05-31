@@ -10,10 +10,7 @@ CMD ["/usr/lib/rstudio-server/bin/rserver", "--server-daemonize", "0", "--auth-n
 RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     libxml2-dev \
-    zlib1g \
     g++-11 \
-    libz-dev \
-    freetype2-demos \
     libpng-dev \
     libtiff-dev \
     libjpeg-dev \
@@ -23,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libharfbuzz-dev \
     libfontconfig1-dev \
     git \
-    vim \
     && rm -rf /var/lib/apt/lists/*
 
 # installing R packages
