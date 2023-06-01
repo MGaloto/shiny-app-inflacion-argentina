@@ -1,8 +1,6 @@
 name: Update Data and Deploy
 
 on: 
-  push:
-    branches: [main]
   schedule:  
     - cron: '0 19,20 1,12,17 * *' # el dia 1,10 y 17 del mes a las 16 y 17 hs argentina
     # cada doce horas '0 */12 * * *'
