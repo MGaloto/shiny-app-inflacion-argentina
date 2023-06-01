@@ -36,6 +36,3 @@ jobs:
         TOKEN: ${{ secrets.TOKEN }}
         SECRET: ${{ secrets.SECRET }}
 
-    retry:
-      max-runs: 2
-      min-seconds: 600

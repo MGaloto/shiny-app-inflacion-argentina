@@ -29,6 +29,10 @@ interanual <- function(df, val){
 
 
 
+
+
+
+
 data_pie = function(df){
     fecha_fin = max(df$periodos)
     
@@ -48,7 +52,6 @@ data_pie = function(df){
     }
     return(tibble(sector = name, tasa = value))
 }
-
 
 
 
@@ -110,7 +113,7 @@ ui <- dashboardPage(
                 tabName = "dashboard",
                 h3("Precios Economia Argentina"),
                 p("Dashboard sobre la variacion de los precios en ", 
-                  span("Argentina", style = "color: blue;"), paste0(" desde enero 2017 a ",format(max(indec$periodos), "%B")," de ", as.character(max(indec$year)))),
+                  span("Argentina", style = "color: blue;"), paste0(" desde enero 2017 hasta ",format(max(indec$periodos), "%B")," de ", as.character(max(indec$year)))),
                 fluidRow(
                     bs4ValueBoxOutput("valuebox_mensual"),
                     bs4ValueBoxOutput("valuebox_interanual"),
@@ -229,13 +232,17 @@ server <- function(input, output,session) {
                             ((lag(pull(rv$indec[,c(input$input1)]), 10)/100)+1)	*  	
                             ((lag(pull(rv$indec[,c(input$input1)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(rv$indec)])
         
+
+        
         rv$data2 = rv$indec %>% 
-            select(input$input1, 'year') %>% 
+            select(input$input1, 'year','Mes') %>% 
             mutate(interanual = format(round((pull(rv$indec[,c(input$input1)]) / 100 ) + 1, 3), nsmall = 3))  %>%
+            filter(rv$indec$Mes <= rv$indec$Mes[nrow(rv$indec)]) %>% 
             select('interanual', 'year') %>% 
             group_by(year) %>% 
-            summarise(prod = format(round(prod(as.numeric(interanual)), 2), nsmall = 2)) %>% 
-            mutate(interanual = (as.numeric(prod) - 1)*100)
+            summarise(prod = format(round(prod(as.numeric(interanual)), 4), nsmall = 2)) %>% 
+            mutate(interanual = (as.numeric(prod) - 1)*100)%>% 
+            mutate(interanual = round(as.numeric(interanual),4))
        
         
         
@@ -280,7 +287,7 @@ server <- function(input, output,session) {
                 )
             ) %>%
             highcharter::hc_yAxis(
-                title = list(text = str_to_title(gsub("_", " ", input$input1)),
+                title = list(text = "% Interanual",
                              style = list(color = "black", fontWeight = "bold")),
                 gridLineWidth = 0,
                 reversed = FALSE,
@@ -323,11 +330,11 @@ server <- function(input, output,session) {
             showInLegend = F,
             maxSize = "15%",
             dataLabels = list(enabled = TRUE,
-                              format = '{point.y} %')) %>%
+                              format = '{point.y:.2f} %')) %>%
             hc_legend(enabled = FALSE) %>% 
             highcharter::hc_tooltip(
                 crosshairs = FALSE, 
-                pointFormat = "Inflacion: {point.y} %") %>%
+                pointFormat = "Inflacion: {point.y:.2f} %") %>%
 
             # highcharter::hc_chart(
             #     backgroundColor = "#d6cece"  # Cambia aquí el color de fondo
@@ -343,7 +350,7 @@ server <- function(input, output,session) {
                 )
             ) %>%
             highcharter::hc_yAxis(
-                title = list(text = str_to_title(gsub("_", " ", input$input1)),
+                title = list(text = "% Acumulado",
                              style = list(color = "black", fontWeight = "bold")),
                 gridLineWidth = 0,
                 reversed = FALSE,
@@ -359,7 +366,7 @@ server <- function(input, output,session) {
                 text = paste0('Inflacion ', gsub('_', ' ', colnames(indec[,c(input$input1)]))),
                 style = list(fontSize = '16px', fontWeight = 'bold', color = "black")) %>% 
             hc_subtitle(
-                text = 'Acumulada por año.',
+                text = paste0('Acumulada por año hasta ', as.character(rv$indec$Mes[nrow(rv$indec)]), "/", as.character(rv$indec$year[nrow(rv$indec)])),
                 style = list(fontSize = '12px', fontWeight = 'bold', color = "black")) %>% 
             highcharter::hc_tooltip(
                 crosshairs = TRUE,
@@ -382,18 +389,18 @@ server <- function(input, output,session) {
 
         
         datapie = data_pie(rv$indec)
-        
+
         datapie  %>%
             hchart(
                 "pie", 
-                hcaes(x = sector, y = tasa),
+                hcaes(x = sector, y = round(tasa,2)),
                 id = "trend",
                 showInLegend = F) %>%
             hc_title(text = "Highcharter Pie chart") %>%
             hc_subtitle(text = "Top 10 countries by population <br>techanswers88") %>% 
             highcharter::hc_tooltip(
                 crosshairs = FALSE, 
-                pointFormat = "Inflacion: {point.y} %") %>% 
+                pointFormat = "Inflacion: {point.y:.2f} %") %>% 
             hc_credits(enabled = TRUE, text = "INDEC",align = "right",verticalAlign = "bottom",
                        style = list(color = "#2b908f", fontSize = '10px'),
                        href = " https://www.indec.gob.ar/") %>% 
