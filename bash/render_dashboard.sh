@@ -11,7 +11,7 @@ else
     echo "${LGREEN}Git user.email is: $2${LGREEN}"
 fi
 
-Rscript downloadData.R
+Rscript R/downloadData.R
 echo "${LGREEN}----------Ok Rscript---------${LGREEN}"
 
 # Fix github issue

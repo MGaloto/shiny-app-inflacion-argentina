@@ -11,7 +11,7 @@ library(highcharter)
 #packageVersion("rsconnect")
 
 
-indec = read_excel("indecnacional.xlsx")
+indec = read_excel("data/indecnacional.xlsx")
 
 
 
@@ -212,7 +212,7 @@ server <- function(input, output,session) {
         
         # SV search_tweets ----------------------------------------------------------------------
         # 
-        rv$indec = read_excel("indecnacional.xlsx")
+        rv$indec = read_excel("data/indecnacional.xlsx")
         
         rv$indec$period_filter = substr(as.Date(rv$indec$periodos), 1, 7)
         

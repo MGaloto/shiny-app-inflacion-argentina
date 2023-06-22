@@ -28,7 +28,7 @@ jobs:
       run: bash ./bash/render_dashboard.sh "MGaloto" "maxigaloto@hotmail.com"
 
     - name: Deploy app
-      run: Rscript deploy.R
+      run: Rscript R/deploy.R
       env:
         SHINY_ACC_NAME: ${{ secrets.SHINY_ACC_NAME }}
         TOKEN: ${{ secrets.TOKEN }}
