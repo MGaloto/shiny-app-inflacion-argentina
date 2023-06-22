@@ -1,3 +1,5 @@
+[![Update Data and Deploy](https://github.com/MGaloto/shiny-app-inflacion-argentina/actions/workflows/dashboard_refresh.yml/badge.svg)](https://github.com/MGaloto/shiny-app-inflacion-argentina/actions/workflows/dashboard_refresh.yml)
+
 # Argentina Inflacion
 
 
