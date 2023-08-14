@@ -56,6 +56,10 @@
         {
             "package": "bs4Dash",
             "version":"2.2.1"
+        },
+        {
+            "package": "viridis",
+            "version":"0.6.2"
         }
         
        
