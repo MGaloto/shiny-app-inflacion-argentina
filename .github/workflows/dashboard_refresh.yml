@@ -18,7 +18,7 @@ jobs:
       pages: write
 
     container: 
-      image: mgaloto/bs4dashiny:02
+      image: mgaloto/bs4dashiny:03
 
     steps:
     - name: checkout_repo

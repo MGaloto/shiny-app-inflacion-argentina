@@ -7,7 +7,7 @@
         },
         {
             "package": "rsconnect",
-            "version":"0.8.25"
+            "version":"1.1.0"
         },
         {
             "package": "XML",
@@ -35,7 +35,7 @@
         },
         {
             "package": "httr",
-            "version":"1.4.2"
+            "version":"1.4.7"
         },
         {
             "package": "writexl",

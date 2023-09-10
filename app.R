@@ -9,6 +9,7 @@ library(highcharter)
 library(shiny)
 
 
+
 traducir_mes <- function(mes_ingles) {
   meses <- c("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")
   meses_espanol <- c("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
