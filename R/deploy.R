@@ -16,6 +16,7 @@ setAccountInfo(name = values_function("SHINY_ACC_NAME"),
 
 
 deployApp(appName="macrotrends",
+          forceUpdate = TRUE,
           appFiles = c("app.R", 
                        "R/downloadData.R",
                        "data/indecnacional.xlsx"))
