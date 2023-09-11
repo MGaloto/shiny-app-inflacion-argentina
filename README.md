@@ -146,15 +146,11 @@ Las siguientes librerias son las principales (No todas) que se van a configurar 
         },
         {
             "package": "rsconnect",
-            "version":"0.8.25"
+            "version":"0.8.29"
         },
         {
             "package": "XML",
             "version":"3.99.0.8"
-        },
-        {
-            "package": "dplyr",
-            "version":"1.0.9"
         },
         {
             "package": "highcharter",
@@ -167,14 +163,6 @@ Las siguientes librerias son las principales (No todas) que se van a configurar 
         {
             "package": "tidyverse",
             "version":"1.3.1"
-        },
-        {
-            "package": "readxl",
-            "version":"1.4.0"
-        },
-        {
-            "package": "httr",
-            "version":"1.4.2"
         },
         {
             "package": "writexl",
@@ -195,6 +183,10 @@ Las siguientes librerias son las principales (No todas) que se van a configurar 
         {
             "package": "bs4Dash",
             "version":"2.2.1"
+        },
+        {
+            "package": "viridis",
+            "version":"0.6.2"
         }
         
        
