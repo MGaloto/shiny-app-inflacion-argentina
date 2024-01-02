@@ -87,6 +87,52 @@ data_bar = function(df, colnames){
 
 
 
+barplot_sector_inflacion = function(df, y, text, title){
+  df$periodos = as.Date(df$periodos)
+  highchart() %>%
+    hc_chart(type = "column") %>%
+    hc_title(text = text) %>%
+    hc_xAxis(categories = df$periodos) %>%
+    hc_yAxis(title = list(text = "Inflacion")) %>%
+    hc_add_series(name = "inflacion", 
+                  data = pull(df[, y]),
+                  color = "#007bff") %>% 
+    highcharter::hc_tooltip(crosshairs = TRUE, pointFormat = "Inflacion: % {point.y}",valueDecimals=2) %>%
+    highcharter::hc_legend(enabled = FALSE) %>%
+    highcharter::hc_xAxis(
+      title = list(text = ""),
+      reversed = FALSE,
+      labels = list(
+        style = list(color = "black", fontWeight = "bold")
+      )
+    ) %>%
+    highcharter::hc_yAxis(
+      title = list(text = "% Brecha",
+                   style = list(color = "black", fontWeight = "bold")),
+      gridLineWidth = 0,
+      reversed = FALSE,
+      labels = list(
+        style = list(color = "black", fontWeight = "bold")
+      )
+    ) %>%
+    
+    highcharter::hc_caption(
+      text = paste0(text),
+      style = list(fontSize = '12px', fontWeight = 'bold', color = "black")) %>%
+    highcharter::hc_tooltip(
+      crosshairs = TRUE,
+      backgroundColor = "#F0F0F0",
+      shared = TRUE, 
+      borderWidth = 5
+    ) %>% 
+    hc_title(
+      text = title,
+      style = list(fontSize = '16px', fontWeight = 'bold', color = "black")) 
+}
+
+
+
+
 # Crear la UI del dashboard
 
 # UI ----------------------------------------------------------------------
@@ -122,6 +168,10 @@ ui <- dashboardPage(
         label = "Sectores",
         choices = indec_colnames, 
         selected = "Nivel general"),
+      menuItem(
+        text = "Sector",
+        tabName = "bpsector",
+        icon = icon("chart-bar")),
       menuItem(
         text = "Bar Plot",
         tabName = "bp",
@@ -188,7 +238,7 @@ body = dashboardBody(
     # UI about ----------------------------------------------------------------------
     tabItem(
       tabName = "bp",
-      h3("Grafico de Barras por Sector"), 
+      h3(paste0("Grafico de Barras por Sector con datos actualizados a ",traducir_mes(format(max(indec$periodos), "%B"))," de ", as.character(max(indec$year)))),
       br(),  
       p("Variacion mensual e interanual de los precios en Argentina."),
       column(
@@ -207,6 +257,25 @@ body = dashboardBody(
             title = "Bar Plot",
             withSpinner(
               highchartOutput("barplot2"),
+              type = 1
+            )
+          )
+        )
+      )
+    ),
+    tabItem(
+      tabName = "bpsector",
+      h3("Variacion mensual de los precios en Argentina desde 2017."),
+      br(),  
+      p(paste0("Datos actualizados a ",traducir_mes(format(max(indec$periodos), "%B"))," de ", as.character(max(indec$year)))),
+      column(
+        width = 12,
+        tabBox(
+          width = 12,
+          tabPanel(
+            title = "Sector Bar Plot",
+            withSpinner(
+              highchartOutput("barplot_sector"),
               type = 1
             )
           )
@@ -266,14 +335,8 @@ server <- function(input, output,session) {
   
   
   observeEvent(input$input1, {
-    
-    
-    # SV search_tweets ----------------------------------------------------------------------
-    # 
     rv$indec = indec
-    
     rv$indec$period_filter = substr(as.Date(rv$indec$periodos), 1, 7)
-    
     
     rv$data = tibble(		
       x = as.Date(rv$indec$periodos[12:nrow(rv$indec)]),		
@@ -291,8 +354,6 @@ server <- function(input, output,session) {
                     ((lag(pull(rv$indec[,c(input$input1)]), 11)/100)+1) - 1 ) * 100),1)[12:nrow(rv$indec)])
     
     
-    
-    
     rv$data2 = rv$indec %>% 
       select(input$input1, 'year','Mes') %>% 
       mutate(interanual = format(round((pull(rv$indec[,c(input$input1)]) / 100 ) + 1, 3), nsmall = 3))  %>%
@@ -303,14 +364,9 @@ server <- function(input, output,session) {
       mutate(interanual = (as.numeric(prod) - 1)*100)%>% 
       mutate(interanual = round(as.numeric(interanual),4))
     
-    
-    
+  
   }, ignoreNULL = FALSE)
   
-  
-  
-  
-  # SV timeserie ----------------------------------------------------------------------
   output$timeserie <- renderHighchart({
     req(rv$data)
     rv$data %>% head()
@@ -377,6 +433,19 @@ server <- function(input, output,session) {
   })
   # SV barplot ----------------------------------------------------------------------
   
+  output$barplot_sector = renderHighchart({
+    req(rv$indec)
+    barplot_sector_inflacion(
+      df = indec,
+      y = input$input1,
+      text = paste0('Inflacion mensual de ', input$input1, ' . Fuente INDEC.'),
+      title = paste0('Inflacion mensual de ', input$input1)
+    )
+    
+    }
+  )
+  
+  
   output$barplot <- renderHighchart({
     req(rv$data2)
     
@@ -438,9 +507,6 @@ server <- function(input, output,session) {
     
   })
   
-  
-  
-  # SV bar ----------------------------------------------------------------------
   output$barplot2 <- renderHighchart({
     if (input$barplotperiodo == "Mensual"){
       data = data_bar(rv$indec, indec_colnames)
@@ -509,12 +575,6 @@ server <- function(input, output,session) {
   
   
   
-  # value box ----------------------------------------------------------------------
-  # 
-  
-  
-  
-  
   output$valuebox_mensual <- renderbs4ValueBox({
     
     bs4ValueBox(
@@ -567,3 +627,7 @@ server <- function(input, output,session) {
 }
 
 shinyApp(ui = ui, server = server)
+
+
+
+
