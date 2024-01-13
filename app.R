@@ -9,7 +9,6 @@ library(highcharter)
 library(shiny)
 
 
-
 traducir_mes <- function(mes_ingles) {
   meses <- c("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december")
   meses_espanol <- c("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
@@ -133,12 +132,6 @@ barplot_sector_inflacion = function(df, y, text, title){
 
 
 
-# Crear la UI del dashboard
-
-# UI ----------------------------------------------------------------------
-
-
-
 ui <- dashboardPage(
   options = F,
   preloader = list(
@@ -150,7 +143,7 @@ ui <- dashboardPage(
       title ="Precios Argentina",
       image = "https://upload.wikimedia.org/wikipedia/commons/6/64/Logo_Indec.png")
   ),
-  # dashboardSidebar ----------------------------------------------------------------------
+  
   sidebar = dashboardSidebar(
     background = "lightgray",
     background_dark = "darkgray",
@@ -163,11 +156,6 @@ ui <- dashboardPage(
         startExpanded = T,
         icon = icon("home")
       ),
-      selectInput(
-        inputId = "input1",
-        label = "Sectores",
-        choices = indec_colnames, 
-        selected = "Nivel general"),
       menuItem(
         text = "Sector",
         tabName = "bpsector",
@@ -194,7 +182,6 @@ body = dashboardBody(
   ),
   tabItems(
     tabItem(
-      # Sección Principal ----------------------------------------------------------------------
       
       tabName = "dashboard",
       h3("Precios Economia Argentina"),
@@ -211,7 +198,27 @@ body = dashboardBody(
           tabBox(
             width = 12,
             tabPanel(
-              # UI timeserie ----------------------------------------------------------------------
+              
+                fluidRow(
+                  column(6,
+                    selectInput(
+                      inputId = "input1",
+                      width = "70%",
+                      label = "Sectores",
+                      choices = indec_colnames, 
+                      selected = "Nivel general")
+                  ),
+                  column(6,
+                   radioButtons(
+                     "filterdaysdos",
+                     "Opciones:",
+                     choices = c("Historico", "Ultimos 12 meses"),
+                     inline = T,
+                     selected = "Historico"
+                   )
+                  )
+                )
+                ,
               title = "Time Serie",
               withSpinner(
                 highchartOutput("timeserie"),
@@ -225,7 +232,6 @@ body = dashboardBody(
           tabBox(
             width = 12,
             tabPanel(
-              # UI barplot ----------------------------------------------------------------------
               title = "Bar Plot",
               withSpinner(
                 highchartOutput("barplot"),
@@ -235,7 +241,6 @@ body = dashboardBody(
           )
         )
       )),
-    # UI about ----------------------------------------------------------------------
     tabItem(
       tabName = "bp",
       h3(paste0("Grafico de Barras por Sector con datos actualizados a ",traducir_mes(format(max(indec$periodos), "%B"))," de ", as.character(max(indec$year)))),
@@ -274,6 +279,28 @@ body = dashboardBody(
           width = 12,
           tabPanel(
             title = "Sector Bar Plot",
+            fluidRow(
+              column(6,
+              selectInput(
+                inputId = "inputdos",
+                width = "70%",
+                label = "Sectores",
+                choices = indec_colnames, 
+                selected = "Nivel general")
+              ),
+              column(6,
+              radioButtons(
+                "filterdays",
+                "Opciones:",
+                choices = c("Historico", "12 meses"),
+                inline = T,
+                selected = "Historico"
+              )
+                
+              )
+              
+            )
+            ,
             withSpinner(
               highchartOutput("barplot_sector"),
               type = 1
@@ -325,7 +352,6 @@ body = dashboardBody(
 )
 )
 
-# SV ----------------------------------------------------------------------
 server <- function(input, output,session) {
   
   
@@ -369,10 +395,15 @@ server <- function(input, output,session) {
   
   output$timeserie <- renderHighchart({
     req(rv$data)
-    rv$data %>% head()
+    
+    if (input$filterdaysdos=="Ultimos 12 meses"){
+      data_timeserie = tail(rv$data, 12)
+    } else {
+      data_timeserie = rv$data
+    }
     
     highcharter::hchart(
-      rv$data, type = "line",  highcharter::hcaes(x = "x", y = "y"),
+      data_timeserie, type = "line",  highcharter::hcaes(x = "x", y = "y"),
       color = "#007bff",
       name = str_to_title(gsub("_", " ", input$input1)), 
       id = "trend",
@@ -431,15 +462,21 @@ server <- function(input, output,session) {
                  style = list(color = "#2b908f", fontSize = '10px', fontWeight = 'bold', color = "black"),
                  href = " https://www.indec.gob.ar/") 
   })
-  # SV barplot ----------------------------------------------------------------------
   
   output$barplot_sector = renderHighchart({
     req(rv$indec)
+    
+    if (input$filterdays=="Historico"){
+      indec = indec
+    } else {
+      indec = tail(indec, 12)
+    }
+    
     barplot_sector_inflacion(
       df = indec,
-      y = input$input1,
-      text = paste0('Inflacion mensual de ', input$input1, ' . Fuente INDEC.'),
-      title = paste0('Inflacion mensual de ', input$input1)
+      y = input$inputdos,
+      text = paste0('Inflacion mensual de ', input$inputdos, ' . Fuente INDEC.'),
+      title = paste0('Inflacion mensual de ', input$inputdos)
     )
     
     }
