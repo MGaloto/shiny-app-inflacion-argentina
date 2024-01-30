@@ -19,3 +19,4 @@ shinycopy
 rsconnect/
 application
 .Rproj.user
+.env
