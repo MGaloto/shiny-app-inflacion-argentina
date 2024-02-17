@@ -34,7 +34,6 @@ Serie Temporal de la inflación interanual por rubro
 
 - [**Introduccion**](https://github.com/MGaloto/shiny-app-inflacion-argentina#introduccion)
 - [**Github Actions**](https://github.com/MGaloto/shiny-app-inflacion-argentina#github-actions)
-- [**Librerias**](https://github.com/MGaloto/shiny-app-inflacion-argentina#librerias)
 - [**Dashboard**](https://github.com/MGaloto/shiny-app-inflacion-argentina#dashboard)
 - [**Ejecucion**](https://github.com/MGaloto/shiny-app-inflacion-argentina#ejecucion)
 
@@ -89,7 +88,7 @@ Se va a utilizar [Docker](https://www.docker.com/) para crear una imagen y [Gith
 - `app.R` contiene el trabajo principal.
 - `downloadData.R` contiene el ETL.
 - `.github` contiene el WorkFlow.
-- `docker` contiene todos los archivos de configuración de imágenes de Docker (por ejemplo, Dockerfiley algunos archivos auxiliares)
+- `docker` contiene todos los archivos de configuración de imágenes de Docker (por ejemplo, Dockerfile y algunos archivos auxiliares)
 
 ## Github Actions
 
@@ -120,79 +119,6 @@ on:
 ```
 
 
-## Librerias
-
-
-<div style="text-align: right" class="toc-box">
- <a href="#top">Volver al Inicio</a>
-</div>
-
-<br>
-</br>
-
-
-
-La imagen contiene las librerias necesarias para ejecutar la App en un contenedor Docker y ademas poder probar distintas funcionalidades que tienen las librerias {bs4Dash} y {highcharter}.
-
-Las siguientes librerias son las principales (No todas) que se van a configurar para compilar las capas de la imagen desde el archivo Dockerfile:
-
-``` json
-{
-[
-        
-        {
-            "package": "cpp11",
-            "version":"0.4.2"
-        },
-        {
-            "package": "rsconnect",
-            "version":"0.8.29"
-        },
-        {
-            "package": "XML",
-            "version":"3.99.0.8"
-        },
-        {
-            "package": "highcharter",
-            "version":"0.9.4"
-        },
-        {
-            "package": "lubridate",
-            "version":"1.8.0"
-        },
-        {
-            "package": "tidyverse",
-            "version":"1.3.1"
-        },
-        {
-            "package": "writexl",
-            "version":"1.4.0"
-        },
-        {
-            "package": "rlist",
-            "version":"0.4.6.2"
-        },
-        {
-            "package": "waiter",
-            "version":"0.2.4"
-        },
-        {
-            "package": "shinycssloaders",
-            "version":"1.0.0"
-        },
-        {
-            "package": "bs4Dash",
-            "version":"2.2.1"
-        },
-        {
-            "package": "viridis",
-            "version":"0.6.2"
-        }
-        
-       
-    ]
-}
-```
 
 ## Dashboard
 
